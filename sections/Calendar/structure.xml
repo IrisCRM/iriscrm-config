@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<MENU_TAB>
+   <TAB section_type="special" caption="Календарь" image_name="">
+      <SOURCE js_source_file="u_calendar.js" js_function="Calendar.init();"/>
+   </TAB>
+</MENU_TAB>

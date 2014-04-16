@@ -1,0 +1,15 @@
+Options -Indexes
+DirectoryIndex index.php
+
+php_flag magic_quotes_gpc 0
+
+php_flag display_startup_errors 0
+php_flag display_errors 0
+
+# E_NONE = 0
+# E_ERROR = 1
+# E_WARNING = 2
+# E_ALL & ~E_NOTICE = 30711
+# all error codes: http://ru.php.net/manual/en/errorfunc.constants.php
+php_value error_reporting 0
+

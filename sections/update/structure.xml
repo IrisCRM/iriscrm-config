@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<MENU_TAB>
+   <TAB section_type="special" caption="Обновление">
+      <SOURCE js_source_file="u_update.js" js_function="u_update_draw();"/>
+   </TAB>
+</MENU_TAB>

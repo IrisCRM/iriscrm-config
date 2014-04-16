@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<SETTINGS>
+   <OPTIONS fb_debug="off" _echo_debug="on" _display_errors="on" _mail_mode="auto|senmail|sockets"/>
+</SETTINGS>

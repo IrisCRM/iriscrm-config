@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<MENU_TAB>
+   <TAB section_type="special" caption="Кошелек" image_name="">
+      <SOURCE js_source_file="u_mycash.js" js_function="draw_mycash();"/>
+   </TAB>
+</MENU_TAB>

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<MENU_TAB>
+   <TAB section_type="special" caption="Настройки" image_name="">
+      <SOURCE js_source_file="u_mypref.js" js_function="draw_mypref();"/>
+   </TAB>
+</MENU_TAB>
