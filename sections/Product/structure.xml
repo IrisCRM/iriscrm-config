@@ -45,11 +45,12 @@
          </COLUMNS>
       </GRID_WND>
       <EDITCARD name="c_Product" caption="Продукт" width="780" height="440" 
-         layout="1, 2, 2, 1,  1, 2, 2, 2,  1, 2, 2,  1, 2, 1,   1, 2" 
+         layout="1, 2, 2, 1,  1, 2, 2, 2,  1, 2, 2,  1, 2, 1,   1, 2,   1, 1" 
          draw_extra_button="yes">
 		 <TABS>
 			<TAB caption="Продукт" rows="14"/>
 			<TAB caption="Период" rows="2"/>
+         <TAB caption="Цены" rows="2"/>
 		 </TABS>
          <ELEMENTS>
             <FIELD elem_type="text" caption="Наименование" db_field="Name" mandatory="yes" datatype="string" row_type="common"/>
@@ -80,6 +81,8 @@
 			<FIELD elem_type="splitter" caption="Период"/>
 		    <FIELD elem_type="text" caption="Продолжительность" db_field="Duration" mandatory="no" datatype="int" row_type="common" title="Значение этого поля влияет на суммы продукта (Сумма = Цена * Количество * Продолжительность)"/>
 		    <FIELD elem_type="select" caption="Единица времени" db_field="TimeUnit" mandatory="no" datatype="string" row_type="domain" row_type_domain_name="d_product_timeunit"/>
+         <FIELD elem_type="splitter" caption="Цены"/>
+         <FIELD elem_type="detail" code="d_Product_Price" height="200px"/>
          </ELEMENTS>
       </EDITCARD>
       <DETAILS>
@@ -149,7 +152,7 @@
             </EDITCARD>
          </DETAIL>
          <DETAIL caption="Цены" name="d_Product_Price" detail_fk_column="ProductID" detail_table="iris_Product_Price">
-            <GRID lines_count="1" display_search="no" sort_column="5" sort_direction="desc">
+            <GRID lines_count="1" display_search="no" sort_column="5" sort_direction="desc" name="dg_Product_Price">
                <COLUMNS>
                   <ITEM db_field="Name" caption="Название" width="25%" row_type="common"/>
                   <ITEM db_field="PriceTypeID" caption="Тип цены" width="20%" row_type="fk_column" row_type_parent_table="iris_PriceType" row_type_parent_display_column="Name"/>
