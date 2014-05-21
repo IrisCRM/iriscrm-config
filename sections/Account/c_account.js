@@ -5,11 +5,12 @@
 irisControllers.classes.c_Account = IrisCardController.extend({
 
   events: {
-      'field:edit #CountryID': 'onChangeCountryID',
-      'field:edit #RegionID': 'onChangeRegionID',
-      'field:edit #CityID': 'onChangeCityID',
-      'click #EmailLink': 'onChangeEmailLink'
+      'field:edited #CountryID': 'onChangeCountryID',
+      'field:edited #RegionID': 'onChangeRegionID',
+      'field:edited #CityID': 'onChangeCityID',
+      'click #EmailLink': 'onClickEmailLink'
   },
+
   onChangeCountryID: function () {
     common_filtercity(this.el, 'c');
   },
@@ -25,8 +26,18 @@ irisControllers.classes.c_Account = IrisCardController.extend({
       null, true);
   },
 
-  onChangeEmailLink: function () {
-    this.emailToPrimaryContact(this.el);
+  onClickEmailLink: function () {
+    // Email to primary contact
+    var contactid = this.fieldValue('PrimaryContactID');
+    if (contactid != null) {
+      var table = 'iris_Contact';
+      var recordname = this.fieldDisplayValue('PrimaryContactID');
+      var email = '';
+      var params = table + '#;' + contactid + '#;' + 
+          recordname + '#;' + email + '#;';
+
+      openCard('grid', 'Email', '', params);
+    }
   },
 
   /**
@@ -57,21 +68,6 @@ irisControllers.classes.c_Account = IrisCardController.extend({
     */
 
     common_filtercity(this.el, '');
-  },
-
-  emailToPrimaryContact: function (p_wnd_id) {
-    var form = $(p_wnd_id).getElementsByTagName("form")[0];
-    var contactid = c_Common_GetElementValue(form.PrimaryContactID);
-    
-    if (contactid != null) {
-      var table = 'iris_Contact';
-      var recordid = contactid;
-      var recordname = form.PrimaryContactID.value;
-      var email = '';//form.Email.value;
-      var params = table + '#;' + recordid + '#;' + 
-          recordname + '#;' + email + '#;';
-      
-      openCard('grid', 'Email', '', params);
-    }
   }
+
 });

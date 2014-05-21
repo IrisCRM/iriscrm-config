@@ -5,7 +5,7 @@
 
 function calendar_isCheckAccess($table) {
   return TableHasRecordAccessEnabled($table) == 1 and
-         IsUserInAdminGroup($con) == 0;
+         IsUserInAdminGroup() == 0;
 }
 
 function calendar_getTasks($from, $to, $id) {

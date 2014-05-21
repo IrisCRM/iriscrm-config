@@ -354,7 +354,12 @@ function c_Common_SetElementValue(p_Element, p_FieldValue) {
 		}
 		else
 		if (p_Element.getAttribute('type') == 'checkbox') {
-			p_Element.checked = p_FieldValue;
+			if (p_FieldValue = 0) {
+				p_Element.checked = false;
+			}
+			else {
+				p_Element.checked = p_FieldValue;
+			}
 		}
 		else {
 			// miv 25.08.2010: если элемент - WYSIWYG
@@ -366,6 +371,7 @@ function c_Common_SetElementValue(p_Element, p_FieldValue) {
 				p_Element.value = l_FieldValue;
 			}
 		}
+		jQuery(p_Element).trigger('field:edited');
 	}
 }
 

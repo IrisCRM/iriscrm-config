@@ -21,71 +21,6 @@ $thousands_sep = "'";
 global $table_prefix;// = "iris_";
 $table_prefix = "iris_";
 
-/*
-//Вместо json_encode - добавляет преобразование строк в UTF-8
-function json_safe_encode($var)
-{
-	return json_encode(json_fix_cyr($var));
-}
-
-function json_fix_cyr($var)
-{
-	if (is_array($var)) {
-		$new = array();
-		foreach ($var as $k => $v) {
-			$new[json_fix_cyr($k)] = json_fix_cyr($v);
-		}
-		$var = $new;
-	} elseif (is_object($var)) {
-		$vars = get_object_vars($var);
-		foreach ($vars as $m => $v) {
-			$var->$m = json_fix_cyr($v);
-		}
-	} elseif (is_string($var)) {
-		$var = UtfEncode($var);
-	}
-	return $var;
-}
-*/
-
-///////////////////////////////// Домены /////////////////////////////////////
-//Условия сравнения (d_compare_condition)
-function GetDomainValue($domain, $number)
-{
-	//TODO: сделать автоформирование результата из xml
-	if ('d_compare_condition' == $domain) {
-		switch ($number) {
-			case 1: return '=';
-			case 2: return '>';
-			case 3: return '>=';
-			case 4: return '<';
-			case 5: return '<=';
-			case 6: return '!=';
-		}
-	}
-
-	if ('d_logic_condition' == $domain) {
-		switch ($number) {
-			case 1: return 'and';
-			case 2: return 'or';
-		}
-	}
-
-	if ('d_graph_type' == $domain) {
-		switch ($number) {
-			case 1: return 'pie';
-			case 2: return 'bar';
-			case 3: return 'bar_h';
-			case 4: return 'line';
-			case 5: return 'spline';
-			case 6: return 'funnel';
-			case 7: return 'bar_ml';
-		}
-	}
-	
-	return '';
-}
-
 
 function IsEmptyValue($Value)
 {
@@ -121,45 +56,6 @@ function FiledValuesToAssoc($FiledValues)
 		$Values[$i]['Value'] = $FiledValues[$i]->Value;
 	}
 	return $Values;
-}
-
-
-//Получить по номеру месяца его название
-function monthName($month, $padej=0)
-{
-	if ($padej == 0) {
-		switch ($month) {
-			case 1: return 'Январь';	
-			case 2: return 'Февраль';	
-			case 3: return 'Март';	
-			case 4: return 'Апрель';	
-			case 5: return 'Май';	
-			case 6: return 'Июнь';	
-			case 7: return 'Июль';	
-			case 8: return 'Август';	
-			case 9: return 'Сентябрь';	
-			case 10: return 'Октябрь';	
-			case 11: return 'Ноябрь';	
-			case 12: return 'Декабрь';	
-		}
-	}
-	if ($padej == 1) {
-		switch ($month) {
-			case 1: return 'января';	
-			case 2: return 'февраля';	
-			case 3: return 'Марта';
-			case 4: return 'апреля';	
-			case 5: return 'мая';
-			case 6: return 'июня';	
-			case 7: return 'июля';	
-			case 8: return 'августа';	
-			case 9: return 'сентября';	
-			case 10: return 'октября';	
-			case 11: return 'ноября';	
-			case 12: return 'декабря';	
-		}
-	}
-	return '';
 }
 
 
@@ -644,6 +540,10 @@ function GetCurrentUserOwner($p_UserID, $p_con=null)
 
 //Получить текущее время
 function GetCurrentDBDateTime($p_con=null) {
+	$DB = DB::getInstance();
+	$Local = Local::getInstance();
+	return $Local->dbDateTimeToLocal($DB->datetime());
+/*
 	$con = GetConnection($p_con);
 	
 	//Время завершения
@@ -654,21 +554,25 @@ function GetCurrentDBDateTime($p_con=null) {
 	$res = $statement->fetch();
 	
 	return $l_date;
+*/
 }
 
 
 //Получить текущую дату
 function GetCurrentDBDate($p_con=null) {
+	$DB = DB::getInstance();
+	$Local = Local::getInstance();
+	return $Local->dbDateToLocal($DB->datetime());
+/*
 	$con = GetConnection($p_con);
-	
 	//Время завершения
 	$select_sql = "select "._db_date_to_string(_db_current_datetime());
 	$statement = $con->prepare($select_sql);
 	$statement->execute();
 	$statement->bindColumn(1, $l_date);
 	$res = $statement->fetch();
-	
 	return $l_date;
+	*/
 }
 
 //Сгенерировать новый номер
@@ -724,7 +628,7 @@ function UpdateRecord($p_Table, $p_Fields, $p_ID, $p_con=null, $unconvert=false)
   //Добавляем поля - дата изменения, изменил в том случае, если их ещё нет в $p_Fields
   $modifyid = null;
   $modifydate = null;
-  foreach ($p_Fields as $key => $value) {
+  foreach ($p_Fields as $value) {
     if (strtolower($value['Name']) == 'modifyid') {
       $modifyid = 1;
     }
@@ -754,13 +658,15 @@ function UpdateRecord($p_Table, $p_Fields, $p_ID, $p_con=null, $unconvert=false)
 	$update_sql .= " where ID=:p_id";
 
 	$statement = $con->prepare($update_sql, array(PDO::ATTR_EMULATE_PREPARES => true));
-  $params = array();
+	$params = array();
 	$params[':p_id'] = $p_ID;
 	for ($i=0; $i<count($p_Fields); $i++) {
-    if ($p_Fields[$i]['Value'] == '') {
+    	if ($p_Fields[$i]['Value'] == '') {
 			$p_Fields[$i]['Value'] = null;
 		}
-    $params[':p_value'.$i] = $unconvert && $p_Fields[$i]['Value'] ? json_decode_str($p_Fields[$i]['Value']) : $p_Fields[$i]['Value'];
+		$params[':p_value' . $i] = $unconvert && $p_Fields[$i]['Value'] 
+				? json_decode_str($p_Fields[$i]['Value']) 
+				: $p_Fields[$i]['Value'];
 	}
 	$statement->execute($params);
 
@@ -781,7 +687,7 @@ function InsertRecord($p_Table, $p_Fields, $p_con=null, $unconvert=false) {
   $modifyid = null;
   $createdate = null;
   $modifydate = null;
-  foreach ($p_Fields as $key => $value) {
+  foreach ($p_Fields as &$value) {
     if (strtolower($value['Name']) == 'createid') {
       $createid = 1;
     }
@@ -855,6 +761,7 @@ function InsertRecord($p_Table, $p_Fields, $p_con=null, $unconvert=false) {
 	$insert_sql .= ")";
 
 	$statement = $con->prepare($insert_sql);
+	$params = array();
 	for ($i=0; $i<count($p_Fields); $i++) {
 
 		if (($p_Fields[$i]['Value'] == '') || $p_Fields[$i]['Value'] == null) {
@@ -867,14 +774,15 @@ function InsertRecord($p_Table, $p_Fields, $p_con=null, $unconvert=false) {
 		}
 //		echo '/'.$p_Fields[$i]['Value'];
 		//if (!$unconvert) {
-			$statement->bindParam(':p_value'.$i, $p_Fields[$i]['Value']);
+			$params[':p_value' . $i] = $p_Fields[$i]['Value'];
+			//$statement->bindParam(':p_value' . $i, (string)$p_Fields[$i]['Value']);
 		//}
 		//else {
 		//	$val = json_decode_str($p_Fields[$i]['Value']);
 		//	$statement->bindParam(':p_value'.$i, json_decode_str($p_Fields[$i]['Value']));
 		//}
 	}
-	$statement->execute();
+	$statement->execute($params);
 	if ($statement->errorCode() != '00000') {
 		return false;
 	}	
@@ -927,34 +835,3 @@ function LoadTemplate($p_file_name) {
 	}
 	return $template_html;	
 }
-
-
-//Преобразование даты в формат "31" мая 2009 г.
-function Date_DocumentFormat($Date) {
-	$DateFormat = strtotime($Date);
-	$Date = '«'.date("d", $DateFormat).'»';
-	$Date .= " ".monthName(date("m", $DateFormat), 1)." ";
-	$Date .= date("Y", $DateFormat)." г.";
-	return $Date;	
-}
-
-// Конвертирует массив
-function iconv_array($p_from, $p_to, $p_array) {
-	if ($p_array == null)
-		return null;
-	foreach ($p_array as $key => $value) {
-		if (is_array($p_array[$key]) == true)
-			$p_array[$key] = iconv_array($p_from, $p_to, $p_array[$key]);
-		if (is_string($p_array[$key]) == true) {
-			if ($p_from == 'utf-8' || $p_from == 'UTF8' || $p_from == 'utf8') {
-				$p_array[$key] = UtfDecode($p_from, $p_to, $value);
-			}
-			else {
-				$p_array[$key] = UtfEncode($p_from, $p_to, $value);
-			}
-		}
-	}
-	return $p_array;
-}
-
-?>

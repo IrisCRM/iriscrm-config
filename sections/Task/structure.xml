@@ -48,37 +48,41 @@
             <ITEM db_field="OwnerID" caption="Ответственный" width="20%" row_type="fk_column" row_type_parent_table="iris_Contact" row_type_parent_display_column="Name"/>
          </COLUMNS>
       </GRID_WND>
-      <EDITCARD name="c_Task" caption="Дело" width="780" height="440" 
-         layout="1, 2, 2, 2, 2, 2, 1, 2, 1, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2" 
+      <EDITCARD name="c_Task" caption="Дело" width="780" height="520" 
+         layout="2, 1, 2, 2, 2, 2, 1,  1, 2,  1, 2, 1,  1, 1, 2,    1, 2, 2, 2, 2, 2, 2, 2, 2, 2" 
          show_card_top_panel="yes">
          <TABS>
-            <TAB caption="Основная информация" rows="11"/>
+            <TAB caption="Основная информация" rows="15"/>
             <TAB caption="Связи" rows="8"/>
          </TABS>
          <ELEMENTS>
-            <FIELD elem_type="textarea" textarea_rows="5" caption="Дело" db_field="Name" mandatory="yes" datatype="string" row_type="common"/>
-            <FIELD elem_type="text" caption="Начало" db_field="StartDate" mandatory="yes" datatype="datetime" row_type="date"/>
+            <FIELD elem_type="lookup" caption="Автор" db_field="CreateID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Contact" row_type_parent_display_column="Name"/>
             <FIELD elem_type="lookup" caption="Ответственный" db_field="OwnerID" mandatory="yes" filter_where="T0.id in (select id from iris_getowners())" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Contact" row_type_parent_display_column="Name"/>
+            <FIELD elem_type="select" caption="Цель" db_field="TaskTargetID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskTarget" row_type_parent_display_column="Name" order_by="orderpos"/>
+            <FIELD elem_type="text" caption="Начало" db_field="StartDate" mandatory="yes" datatype="datetime" row_type="date"/>
             <FIELD elem_type="text" caption="Завершение" db_field="FinishDate" mandatory="no" datatype="datetime" row_type="date"/>
-            <FIELD elem_type="select" caption="Тип" db_field="TaskTypeID" db_field_ext="code" mandatory="yes" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskType" row_type_parent_display_column="Name" order_by="orderpos"/>
-            <FIELD elem_type="select" caption="Состояние" db_field="TaskStateID" mandatory="yes" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskState" row_type_parent_display_column="Name" order_by="orderpos"/>
-            <FIELD elem_type="select" caption="Важность" db_field="TaskImportanceID" mandatory="yes" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskImportance" row_type_parent_display_column="Name" order_by="orderpos"/>
             <FIELD elem_type="lookup" caption="Компания" db_field="AccountID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Account" row_type_parent_display_column="Name"/>
+            <FIELD elem_type="select" caption="Тип" db_field="TaskTypeID" db_field_ext="code" mandatory="yes" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskType" row_type_parent_display_column="Name" order_by="orderpos"/>
             <FIELD elem_type="lookup" caption="Контакт" db_field="ContactID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Contact" row_type_parent_display_column="Name"/>
-			<FIELD elem_type="phone" caption="Телефон" db_field="Phone" mandatory="no" datatype="string" db_field_addl="PhoneAddl" mandatory_addl="no"/>
-			<FIELD elem_type="spacer"/>
-            <FIELD elem_type="splitter" caption="Напоминание ответственному"/>
-<!--
-            <FIELD elem_type="select" caption="Напомнить" db_field="IsRemind" mandatory="yes" datatype="int" row_type="domain" row_type_domain_name="d_yn_binary"/>
--->
-            <FIELD elem_type="checkbox" row_type_checked_index="1" caption="Напомнить" db_field="IsRemind" mandatory="yes" datatype="int" row_type="domain" row_type_domain_name="d_yn_binary"/>
+            <FIELD elem_type="select" caption="Состояние" db_field="TaskStateID" mandatory="yes" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskState" row_type_parent_display_column="Name" order_by="orderpos" db_field_ext="code"/>
+            <FIELD elem_type="phone" caption="Телефон" db_field="Phone" mandatory="no" datatype="string" db_field_addl="PhoneAddl" mandatory_addl="no"/>
+            <FIELD elem_type="select" caption="Важность" db_field="TaskImportanceID" mandatory="yes" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskImportance" row_type_parent_display_column="Name" order_by="orderpos"/>
+            <FIELD elem_type="textarea" textarea_rows="5" caption="Дело" db_field="Name" mandatory="yes" datatype="string" row_type="common"/>
 
+            <FIELD elem_type="splitter" caption="Напоминание ответственному"/>
+            <FIELD elem_type="checkbox" row_type_checked_index="1" caption="Напомнить" db_field="IsRemind" mandatory="yes" datatype="int" row_type="domain" row_type_domain_name="d_yn_binary"/>
             <FIELD elem_type="text" caption="Время напоминания" db_field="RemindDate" mandatory="no" datatype="datetime" row_type="date"/>
 
             <FIELD elem_type="splitter" caption="Результат"/>
             <FIELD elem_type="select" caption="Результат" db_field="TaskResultID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskResult" row_type_parent_display_column="Name" db_field_ext="TaskTypeID" order_by="orderpos"/>
             <FIELD elem_type="spacer"/>
             <FIELD elem_type="textarea" textarea_rows="3" caption="Результат подробно" db_field="Result" mandatory="no" datatype="string" row_type="common"/>
+
+            <FIELD elem_type="splitter" caption="Запланировать следующее дело" code="next_task_splitter"/>
+            <FIELD elem_type="select" caption="Цель дела" db_field="NextTaskTargetID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskTarget" row_type_parent_display_column="Name" order_by="orderpos" title="Цель текущего дела отмечена стрелкой"/>
+            <FIELD elem_type="text" caption="Начало дела" db_field="NextStartDate" mandatory="no" datatype="datetime" row_type="date"/>
+            <FIELD elem_type="button" code="select_next_target" caption="Выбрать" align="right" width="80px" method="selectNextTarget"/>
+
             <FIELD elem_type="splitter" caption="Связи"/>
             <FIELD elem_type="lookup" caption="Заказ" db_field="ProjectID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Project" row_type_parent_display_column="Name"/>
             <FIELD elem_type="lookup" caption="Продукт" db_field="ProductID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Product" row_type_parent_display_column="Name"/>
@@ -94,6 +98,7 @@
             <FIELD elem_type="lookup" caption="Платеж" db_field="PaymentID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Payment" row_type_parent_display_column="Name"/>
             <FIELD elem_type="lookup" caption="Накладная" db_field="FactInvoiceID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="FactInvoice" row_type_parent_display_column="Name"/>
             <FIELD elem_type="lookup" caption="Документ" db_field="DocumentID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Document" row_type_parent_display_column="Name"/>
+            <FIELD elem_type="lookup" caption="Предыдущее дело" db_field="PrevRecordID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Task" row_type_parent_display_column="Name"/>
          </ELEMENTS>
       </EDITCARD>
       <DETAILS>

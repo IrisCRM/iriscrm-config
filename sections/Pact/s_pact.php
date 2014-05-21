@@ -19,7 +19,7 @@ class s_Pact extends Config
             return null;
         }
 
-        $result = $this->mergeFields($this->prepareDetail($params), $result);
+        $this->mergeFields($result, $this->prepareDetail($params), false);
 
         // Значения справочников
         $result = GetDictionaryValues(

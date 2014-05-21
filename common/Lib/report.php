@@ -61,7 +61,7 @@ class ReportConfig extends Config
         }
         // При изменении продукта - перенумеруем продукты, если номер изменился
         else {
-            $number_old = $this->getActualValue($old_data, null, 'number');
+            $number_old = $this->fieldValue($old_data, 'number');
             $number_new = $this->getActualValue($old_data, $new_data, 'number');
             if ($number_old > $number_new) {
                 $this->_doRenumber($parent_id, $id, 
@@ -767,6 +767,8 @@ function BuildReportSQL($p_reportid, $p_filters) {
 	$param_number = 0; //для нумерации параметров
 	//print_r($res);
 //echo '<pre>'; print_r($res); echo '</pre>';
+  $d_compare_condition = IrisDomain::getDomain('d_compare_condition');
+  $d_logic_condition = IrisDomain::getDomain('d_logic_condition');
 	foreach ($res as $row) {
 		//Значение в зависимости от типа
 		$param_value = null;
@@ -781,7 +783,7 @@ function BuildReportSQL($p_reportid, $p_filters) {
         if (($row['id'] == $filter->FilterID) || ($row['id'] == $filter->ParameterID) 
         || (!IsEmptyValue($row['paramname']) && $row['paramname'] == $filter->ParameterName)){
 //echo '<pre>'; print_r($filter); echo '</pre>';
-          $condition = GetDomainValue('d_compare_condition', $filter->Condition); //условие сравнения
+          $condition = $d_compare_condition->get($filter->Condition); //условие сравнения
           $param_value = json_decode_str($filter->Value);
           //Если заполнено условие и значение, то добавим условие
           if ($param_value != '' && $condition != '') {
@@ -803,10 +805,10 @@ function BuildReportSQL($p_reportid, $p_filters) {
           
           //для дерева or/and
           $filters_array[$row['id']]['name'] = $param_name;
-          $filters_array[$row['id']]['condition'] = GetDomainValue('d_compare_condition', $filter->Condition);
+          $filters_array[$row['id']]['condition'] = $d_compare_condition->get($filter->Condition);
           $filters_array[$row['id']]['value'] = $param_value;
           $filters_array[$row['id']]['parentfilterid'] = $row['parentfilterid'];
-          $filters_array[$row['id']]['logiccondition'] = GetDomainValue('d_logic_condition', $row['logiccondition']);
+          $filters_array[$row['id']]['logiccondition'] = $d_logic_condition->get($row['logiccondition']);
           $filters_array[$row['id']]['field'] = $row['tablealias'].'.'.$row['columncode'];
             
           break;
@@ -847,7 +849,7 @@ function BuildReportSQL($p_reportid, $p_filters) {
 			//Добавим фильтр только если значение не пустое
 			if ($param_value) {
 //				$where .= '' == $where ? '' : ' and ';
-				$condition = GetDomainValue('d_compare_condition', $row['condition']); //условие сравнения
+				$condition = $d_compare_condition->get($row['condition']); //условие сравнения
 				//Если условие определено, то дополним фильтры
 				if ($condition) {
 //					$param_name = $param_name; //название параметра
@@ -860,10 +862,10 @@ function BuildReportSQL($p_reportid, $p_filters) {
 
 			//для дерева or/and
 			$filters_array[$row['id']]['name'] = $param_name;
-			$filters_array[$row['id']]['condition'] = GetDomainValue('d_compare_condition', $row['condition']);
+			$filters_array[$row['id']]['condition'] = $d_compare_condition->get($row['condition']);
 			$filters_array[$row['id']]['value'] = $param_value;
 			$filters_array[$row['id']]['parentfilterid'] = $row['parentfilterid'];
-			$filters_array[$row['id']]['logiccondition'] = GetDomainValue('d_logic_condition', $row['logiccondition']);
+			$filters_array[$row['id']]['logiccondition'] = $d_logic_condition->get($row['logiccondition']);
 			$filters_array[$row['id']]['field'] = $row['tablealias'].'.'.$row['columncode'];
 			$filters_array[$row['id']]['sql'] = $row['sql'];
 		}
@@ -1326,7 +1328,8 @@ function BuildReportGraph($p_data, $p_show_info, $p_reportid)
   $lightscheme = iris_str_replace(chr(13), '', $lightscheme);
   $litecolors = explode(',', $lightscheme);
 
-	$gtype = GetDomainValue('d_graph_type', $p_graphtype);
+	$d_graph_type = IrisDomain::getDomain('d_graph_type');
+  $gtype = $d_graph_type->get($p_graphtype, 'db_value', 'code');
 	$graphtype = $gtype;
 	
 	$result = '';

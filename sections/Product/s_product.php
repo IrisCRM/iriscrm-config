@@ -28,8 +28,8 @@ class s_Product extends Config
         $Result = null;
         $price = $this->getActualValue($old_data, $new_data, 'Price');
         $unit_id = $this->getActualValue($old_data, $new_data, 'UnitID');
-        $price_old = $this->getActualValue($old_data, null, 'Price');
-        $unit_id_old = $this->getActualValue($old_data, null, 'UnitID');
+        $price_old = $this->fieldValue($old_data, 'Price');
+        $unit_id_old = $this->fieldValue($old_data, 'UnitID');
 
         if ($price != $price_old || $unit_id != $unit_id_old) {
             $update_sql = "update iris_Product_Price "

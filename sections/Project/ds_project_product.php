@@ -186,7 +186,7 @@ class ds_Project_Product extends DocumentConfig
 
         $Local = Local::getInstance();
         $format = $Local->getDateFormat();
-        $start_time = $Local->strtotime($start_date);
+        $start_time = $Local->localDateToTime($start_date);
         $finish_date = null;
 
         if ($time_unit == 'd') {

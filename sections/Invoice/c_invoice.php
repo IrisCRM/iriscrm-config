@@ -30,7 +30,7 @@ class c_Invoice extends Config
     {
         $result = GetLinkedValues('Contact', $params['value'], 
                 array('Account'), $this->connection);
-        $value['value'] = $this->getActualValue($result, null, 'AccountID');
+        $value['value'] = $this->fieldValue($result, 'AccountID');
         return $this->onChangeAccountID($value, $result);
     }
 
@@ -38,7 +38,7 @@ class c_Invoice extends Config
     {
         $result = GetLinkedValues('Offer', $params['value'], 
                 array('Account', 'Contact', 'Project'), $this->connection);
-        $value['value'] = $this->getActualValue($result, null, 'AccountID');
+        $value['value'] = $this->fieldValue($result, 'AccountID');
         return $this->onChangeAccountID($value, $result);
     }
 
@@ -46,7 +46,7 @@ class c_Invoice extends Config
     {
         $result = GetLinkedValues('Project', $params['value'], 
                 array('Account', 'Contact'), $this->connection);
-        $value['value'] = $this->getActualValue($result, null, 'AccountID');
+        $value['value'] = $this->fieldValue($result, 'AccountID');
         return $this->onChangeAccountID($value, $result);
     }
 
@@ -54,7 +54,7 @@ class c_Invoice extends Config
     {
         $result = GetLinkedValues('Pact', $params['value'], 
                 array('Account', 'Contact', 'Project'), $this->connection);
-        $value['value'] = $this->getActualValue($result, null, 'AccountID');
+        $value['value'] = $this->fieldValue($result, 'AccountID');
         return $this->onChangeAccountID($value, $result);
     }
 

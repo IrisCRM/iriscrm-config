@@ -6,57 +6,59 @@ class s_Task extends Config
 {
     public function __construct($Loader)
     {
+        $this->_section_name = substr(__CLASS__, 2);
         parent::__construct($Loader, array(
                 'config/common/Lib/lib.php',
                 'config/common/Lib/access.php',
         ));
-        $this->_section_name = substr(__CLASS__, 2);
     }
 
     public function onPrepare($params) 
     {
         // Заполняем значения по умолчанию только при создании новой записи
         if ($params['mode'] != 'insert') {
-            return null;
+            $cnt = $this->nextTasksCount($params['rec_id']);
+            $this->addParameter($result, 'HaveNextTask', $cnt);
+            return $result;
         }
 
         $result = $this->prepareDetail($params);
 
-        $con = $this->connection;
+        // Значения справочников
+        $this->getValuesFromTables($result, array(
+            '{TaskState}' => 'Plan',
+            '{TaskImportance}' => 'Normal',
+            '{TaskType}' => 'Execute',
+        ));
 
-        //Значения справочников
-        $result = GetDictionaryValues(
-            array (
-                //array ('Dict' => 'TaskType', 'Code' => 'Execute'),
-                array ('Dict' => 'TaskState', 'Code' => 'Plan'),
-                array ('Dict' => 'TaskImportance', 'Code' => 'Normal')
-            ), 
-            $con, $result);
+        // Дата
+        $date = $this->_Local->dbDateTimeToLocal($this->_DB->datetime());
+        $this->mergeFields($result, $this->formatField('StartDate', $date));
 
-        //Дата
-        $Date = GetCurrentDBDateTime($con);
-        $result = FieldValueFormat('StartDate', $Date, null, $result);
+        // Ответственный
+        $session = IrisSession::getInstance();
+        $this->mergeFields($result, $this->formatField('OwnerID', 
+                $session->userId(), $session->userName()));
+        // Автор
+        $this->mergeFields($result, $this->formatField('CreateID', 
+                $session->userId(), $session->userName()));
 
-        //Ответственный    
-        $result = GetDefaultOwner(GetUserName(), $con, $result);
-
-
-
-
-        if ($params['card_params'] == 'undefined') {
-            $params['card_params'] = null;
+        $card_params = null;
+        if (isset($params['card_params'])) {
+            if ($params['card_params'] == 'undefined') {
+                $params['card_params'] = null;
+            }
+            $card_params = json_decode($params['card_params'], true);
         }
 
-        $card_params = json_decode($params['card_params'], true);
         if ($card_params != null) {
             // если карточку открыли через кнопку позвонить, то заполним поля компания, контакт, телефон, тип
             if ($card_params['mode'] == 'open_outcoming_call') {
-                $con = db_connect();
                 $sql  = "select T0.id as cid, T0.name as cname, T0.accountid as aid, T1.name as aname, null as oid, null as oname from iris_contact T0 ";
                 $sql .= "left join iris_account T1 on T0.accountid = T1.id ";
                 $sql .= "where ((T0.phone1=:phone or (T0.phone1 is null and :phone='')) and (T0.phone1addl=:addl or (T0.phone1addl is null and :addl=''))) ";
                 $sql .= "or (T0.phone2=:phone)";
-                $cmd = $con->prepare($sql, array(PDO::ATTR_EMULATE_PREPARES => true));
+                $cmd = $this->connection->prepare($sql, array(PDO::ATTR_EMULATE_PREPARES => true));
                 $cmd->execute(array(":phone" => $card_params['phone'], ":addl" => $card_params['phoneaddl']));
                 $contactinfo = $cmd->fetchAll(PDO::FETCH_ASSOC); // получим контакт и его компанию по номеру телефона
                 if ($contactinfo == null) {
@@ -66,7 +68,7 @@ class s_Task extends Config
                     $sql .= "where (((T0.phone1=:phone or (T0.phone1 is null and :phone='')) and (T0.phone1addl=:addl or (T0.phone1addl is null and :addl=''))) ";
                     $sql .= "or ((T0.phone2=:phone or (T0.phone2 is null and :phone='')) and (T0.phone2addl=:addl or (T0.phone2addl is null and :addl=''))) ";
                     $sql .= "or ((T0.phone3=:phone or (T0.phone3 is null and :phone='')) and (T0.phone3addl=:addl or (T0.phone3addl is null and :addl=''))))";
-                    $cmd = $con->prepare($sql, array(PDO::ATTR_EMULATE_PREPARES => true));
+                    $cmd = $this->connection->prepare($sql, array(PDO::ATTR_EMULATE_PREPARES => true));
                     $cmd->execute(array(":phone" => $card_params['phone'], ":addl" => $card_params['phoneaddl']));
                     $contactinfo = $cmd->fetchAll(PDO::FETCH_ASSOC); // получим компанию, контакт, объект по номеру телефона
                 }
@@ -76,52 +78,152 @@ class s_Task extends Config
                     $sql .= "where (((T0.phone1=:phone or (T0.phone1 is null and :phone='')) and (T0.phone1addl=:addl or (T0.phone1addl is null and :addl=''))) ";
                     $sql .= "or ((T0.phone2=:phone or (T0.phone2 is null and :phone='')) and (T0.phone2addl=:addl or (T0.phone2addl is null and :addl=''))) ";
                     $sql .= "or ((T0.phone3=:phone or (T0.phone3 is null and :phone='')) and (T0.phone3addl=:addl or (T0.phone3addl is null and :addl=''))))";
-                    $cmd = $con->prepare($sql, array(PDO::ATTR_EMULATE_PREPARES => true));
+                    $cmd = $this->connection->prepare($sql, array(PDO::ATTR_EMULATE_PREPARES => true));
                     $cmd->execute(array(":phone" => $card_params['phone'], ":addl" => $card_params['phoneaddl']));
                     $contactinfo = $cmd->fetchAll(PDO::FETCH_ASSOC); // получим компанию по номеру телефона
                 }
                 
-                $result = FieldValueFormat('ContactID', $contactinfo[0]['cid'], $contactinfo[0]['cname'], $result);
-                $result = FieldValueFormat('AccountID', $contactinfo[0]['aid'], $contactinfo[0]['aname'], $result);
-                $result = FieldValueFormat('ObjectID', $contactinfo[0]['oid'], $contactinfo[0]['oname'], $result);
+                $this->mergeFields($result, $this->formatField('ContactID', 
+                        $contactinfo[0]['cid'], $contactinfo[0]['cname']));
+                $this->mergeFields($result, $this->formatField('AccountID', 
+                        $contactinfo[0]['aid'], $contactinfo[0]['aname']));
+                $this->mergeFields($result, $this->formatField('ObjectID', 
+                        $contactinfo[0]['oid'], $contactinfo[0]['oname']));
 
-                $result = FieldValueFormat('Phone', $card_params['phone'], null, $result);
-                $result = FieldValueFormat('PhoneAddl', $card_params['phoneaddl'], null, $result);
-                list($tasktypeid, $tasktypename) = GetFieldValuesByFieldValue('tasktype', 'code', 'Call', array('id', 'name'), $con);
-                $result = FieldValueFormat('TaskTypeID', $tasktypeid, null, $result);
+                $this->mergeFields($result, $this->formatField('Phone', 
+                        $card_params['phone']));
+                $this->mergeFields($result, $this->formatField('PhoneAddl', 
+                        $card_params['phoneaddl']));
+
+                $this->getValuesFromTables($result, array(
+                    '{TaskType}' => 'Call',
+                ));
             }
             else
             if ($card_params['mode'] == 'addFromCalendar') {
-                $result = GetDictionaryValues(
-                    array (
-                        array ('Dict' => 'TaskType', 'Code' => 'Execute'),
-                    ), 
-                    $con, $result);
             }
         }
         else {
-            $result = GetDictionaryValues(
-                array (
-                    array ('Dict' => 'TaskType', 'Code' => 'Execute'),
-                ), 
-                $con, $result);
-
-            $Local = Local::getInstance();
-            $finish_date = $Local->timeToLocalDateTime($Local->dbDateToTime($Date) + 60*60*2);
-            $result = FieldValueFormat('FinishDate', $finish_date, null, $result);
+            $finish_date = $this->_Local->timeToLocalDateTime(
+                    $this->_Local->localDateTimeToTime($date) + 60 * 60 * 2);
+            $this->mergeFields($result, $this->formatField('FinishDate', 
+                    $finish_date));
         }
 
         return $result;
     }
 
-    public function onAfterPost($p_table, $p_id, $old_data, $new_data)
+    // Перед сохранением карточки
+    public function onBeforePost(&$parameters) {
+        $this->removeField($parameters['new_data'], 'CreateID');
+        return $parameters['new_data'];
+    }
+
+    // После сохранения карточки
+    public function onAfterPost($table, $id, $old_data, $new_data)
     {
-        $old_owner_id = GetArrayValueByName($old_data['FieldValues'], 'ownerid');
-        $new_owner_id = GetArrayValueByName($new_data['FieldValues'], 'ownerid');
+        $old_owner_id = $this->fieldValue($old_data, 'ownerid');
+        $new_owner_id = $this->fieldValue($new_data, 'ownerid');
+
+        // Если еще нет дочерних дел, и указана новая цель, то создадим
+        $cnt = $this->nextTasksCount($id);
+        $targetid = $this->fieldValue($new_data, 'NextTaskTargetID');
+        if ($cnt == 0 && $targetid) {
+            $data = $new_data;
+            $this->removeFields($data, array(
+                'TaskResultID',
+                'NextTaskTargetID',
+                'NextStartDate',
+                'IsRemind',
+                'RemindDate',
+                'ModifyID',
+                'ModifyDate',
+                'CreateDate',
+                'CreateID',
+                'ID',
+            ));
+            $data_prepare = $this->onPrepare(array('mode' => 'insert'));
+            $this->mergeFields($data, $data_prepare);
+
+            $target = $this->_DB->getRecord($targetid, '{TaskTarget}', 
+                    array('name', 'termhours', 'termminutes'));
+            $nextstartdate = $this->fieldValue($new_data, 'NextStartDate');
+            $nextfinishdate = $this->_Local->timeToDBDateTime(
+                    $this->_Local->dbDateToTime($nextstartdate) + 
+                    60 * 60 * $target['termhours'] +
+                    60 * $target['termminutes']);
+            $nextstartdate = $this->_Local->dbDateTimeToLocal($nextstartdate);
+            $nextfinishdate = $this->_Local->dbDateTimeToLocal($nextfinishdate);
+            $this->mergeFields($data, $this->formatField('Name', $target['name']));
+            $this->mergeFields($data, $this->formatField('TaskTargetID', $targetid));
+            $this->mergeFields($data, $this->formatField('PrevRecordID', $id));
+            $this->mergeFields($data, $this->formatField('StartDate', $nextstartdate));
+            $this->mergeFields($data, $this->formatField('FinishDate', $nextfinishdate));
+
+            // Создаем новое дело с вызывом обработчиков и добавлением прав
+            $this->saveRecord($data, array(
+                'mode' => 'insert',
+                'source_name' => 'Task',
+            ));
+        }
+
+        // Если требуется переключить стадию заказа, то переключаем
+        if (!$old_data) {
+            $this->switchProjectStage($new_data);
+        }
 
         if ($old_owner_id != $new_owner_id) {
-            return record_chown($p_table, $p_id, $old_owner_id, $new_owner_id, 
+            return record_chown($table, $id, $old_owner_id, $new_owner_id, 
                     array("showMessage" => 1));
+        }
+    }
+
+    public function nextTasksCount($id) {
+        $res = $this->_DB->exec(
+                'select count(id) as cnt ' 
+                . 'from iris_task '
+                . 'where prevrecordid = :id',
+                array(':id' => $id));
+        return $res[0]['cnt'];
+    }
+
+    public function switchProjectStage(&$new_data)
+    {
+        $projectid = $this->fieldValue($new_data, 'ProjectID');
+        if ($projectid) {
+            $currenttargetid = $this->fieldValue($new_data, 'TaskTargetID');
+            $currenttarget = $this->_DB->getRecord(
+                    $currenttargetid, '{TaskTarget}', 
+                    array('ProjectStageID', 'dostagechange', 'onlyforward'));
+            if ($currenttarget['dostagechange']) {
+                $project = $this->_DB->getRecord(
+                        $projectid, '{Project}', 'ProjectStageID');
+                if ($project['projectstageid'] != 
+                        $currenttarget['projectstageid']) {
+                    $change = true;
+                    if ($currenttarget['onlyforward']) {
+                        $projectstage = $this->_DB->getRecord(
+                                $project['projectstageid'], 
+                                '{ProjectStage}', 'Number');
+                        $newprojectstage = $this->_DB->getRecord(
+                                $currenttarget['projectstageid'], 
+                                '{ProjectStage}', 'Number');
+                        if ($newprojectstage['number'] <=
+                                $projectstage['number']) {
+                            $change = false;
+                        }
+                    }
+                    if ($change) {
+                        $filter = array(
+                            ':stageid' => $currenttarget['projectstageid'],
+                            ':id' => $projectid,
+                        );
+                        $this->_DB->exec('update iris_project ' 
+                                . 'set projectstageid = :stageid '
+                                . 'where id = :id', $filter);
+                    }
+                }
+            }
         }
     }
 

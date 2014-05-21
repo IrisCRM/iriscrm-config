@@ -73,11 +73,11 @@
          </COLUMNS>
       </GRID_WND>
       <EDITCARD name="c_Contact" caption="Контакт" width="870" height="480" 
-        layout="1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2">
+        layout="1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1,   1, 1, 1, 1, 1, 1, 1, 1,   2, 2, 2, 2">
          <TABS>
             <TAB caption="Основная информация" rows="15"/>
             <TAB caption="Адрес" rows="6"/>
-            <TAB caption="Маркетинг" rows="5"/>
+            <TAB caption="Маркетинг" rows="8"/>
             <TAB caption="Уведомления" rows="4"/>
          </TABS>
          <ELEMENTS>
@@ -127,6 +127,9 @@
             <FIELD elem_type="lookup" caption="Рекомендатель" db_field="RecommendID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Contact" row_type_parent_display_column="Name" title="Кто порекомендовал сотрудничать с Вами"/>
             <FIELD elem_type="lookup" caption="Мероприятие" db_field="MarketingID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Marketing" row_type_parent_display_column="Name" title="Маркетинговое мероприятие, благодаря которому человек узнал о Вас (выставки, акции и т.п.)"/>
             <FIELD elem_type="lookup" caption="Рекламная площадка" db_field="SpaceID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Space" row_type_parent_display_column="Name" title="Носитель, на котором человек увидел информацию о Вас (рекламный щит, указатель, баннер и т.п.)"/>
+            <FIELD elem_type="spacer"/>
+            <FIELD elem_type="splitter" caption="Важные даты"/>
+            <FIELD elem_type="matrix" code="d_Contact_Date_Matrix"/>
 
 			<!-- Уведомления -->
             <FIELD elem_type="checkbox" row_type_checked_index="1" caption="Разрешить использовать информацию" db_field="ispersonalinfoagree" mandatory="no" datatype="int" row_type="domain" row_type_domain_name="d_yn_binary" title="Разрешить использовать указанную информацию только внутри компании"/>
@@ -208,6 +211,14 @@
 		          <FIELD elem_type="checkbox" row_type_checked_index="1" caption="Не напоминать" db_field="isnotnotify" mandatory="no" datatype="int" row_type="domain" row_type_domain_name="d_yn_binary"/>
 				  <FIELD elem_type="spacer"/>
                   <FIELD elem_type="textarea" textarea_rows="2" caption="Описание" db_field="Description" mandatory="no" datatype="string" row_type="common"/>
+               </ELEMENTS>
+            </EDITCARD>
+         </DETAIL>
+         <DETAIL caption="Важные даты" name="d_Contact_Date_Matrix" showoncard="no" detail_fk_column="ContactID" detail_table="iris_Contact_Date">
+            <EDITCARD name="dc_Contact_Date_Matrix" caption="Важная дата" width="500" height="220" layout="2">
+               <ELEMENTS>
+                  <FIELD elem_type="text" caption="Дата" db_field="Date" mandatory="yes" datatype="date" row_type="date"/>
+                  <FIELD elem_type="select" caption="Тип" db_field="ContactDateTypeID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_table="iris_ContactDateType" row_type_parent_display_column="Name"/>
                </ELEMENTS>
             </EDITCARD>
          </DETAIL>

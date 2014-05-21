@@ -333,7 +333,7 @@ function LoadSection($xml, $id, $typenumber, $p_con, &$unknown = null)
     $jsoninit = $xml_tag->SOURCE['js_function'];
   }
   if ($xml_tag->DETAILS != null) {
-    $show_access_detail = GetYesNoNumber($xml_tag->DETAILS['hide_access_detail'], null, true);
+    $show_access_detail = GetYesNoNumber($xml_tag->DETAILS['hide_access_detail'], '0', true);
   }
 
   $fields = array(

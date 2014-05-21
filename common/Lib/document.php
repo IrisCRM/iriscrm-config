@@ -77,7 +77,7 @@ class DocumentConfig extends Config
         }
         // При изменении продукта - перенумеруем продукты, если номер изменился
         else {
-            $number_old = $this->getActualValue($old_data, null, 'number');
+            $number_old = $this->fieldValue($old_data, 'number');
             $number_new = $this->getActualValue($old_data, $new_data, 'number');
             if ($number_old > $number_new) {
                 $this->_doRenumberProducts($parent_id, $id, 

@@ -21,7 +21,7 @@ class s_Document extends Config
 
         $con = $this->connection;
 
-        $result = $this->mergeFields($this->prepareDetail($params), $result);
+        $this->mergeFields($result, $this->prepareDetail($params), false);
 
         // Значения справочников
         $result = GetDictionaryValues(
