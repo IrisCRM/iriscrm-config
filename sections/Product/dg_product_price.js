@@ -1,5 +1,5 @@
 /**
- * Скрипт карточки цены продукта
+ * Скрипт таблицы цены продукта
  */
 
 irisControllers.classes.dg_Product_Price = IrisGridController.extend({
