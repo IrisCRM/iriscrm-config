@@ -30,6 +30,30 @@ function c_Common_SetOnEvent(p_event, p_Element, p_form, p_FieldName, p_RequestF
 }
 
 //Изменение поля lookup
+/* deprecated. Надо заменять на this.onChangeEvent()
+    Если c_Common_LinkedField_OnChange() без параметров, то 
+    this.onChangeEvent(event, {
+      disableEvents: true,
+      rewriteValues: false,  // p_rewrite
+      letClearValues: false, // p_rewritezero
+      onApply: function() {  // p_func
+      }
+    });
+
+    Значения по умолчанию:
+    this.onChangeEvent(event, {
+      disableEvents: false,
+      rewriteValues: true,
+      letClearValues: true,
+    });
+
+    !!! И на php тогда обработчики надо переносить в s_ 
+    !!! И перемеиновывать в них onChange на onBeforePost
+    !!! И в параметрах $value брать так
+    !!! $value = $this->fieldValue($params['old_data'], 'ContactID');
+
+    !!! И в обработчике заменять GetLinkedValues() на $this->getLinkedValues
+*/
 function c_Common_LinkedField_OnChange(p_form, p_FieldName, p_RequestFileName, p_rewrite, p_func, p_rewritezero)
 {
 	//значение по умолчанию для необязательного аргумента p_rewrite

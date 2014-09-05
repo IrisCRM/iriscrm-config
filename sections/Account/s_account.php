@@ -4,9 +4,9 @@
  */
 class s_Account extends Config
 {
-    function __construct($Loader)
+    function __construct()
     {
-        parent::__construct($Loader, array('config/common/Lib/lib.php'));
+        parent::__construct(array('config/common/Lib/lib.php'));
     }
 
 
@@ -22,14 +22,12 @@ class s_Account extends Config
         $result = null;
 
         // Значения справочников
-        $result = GetDictionaryValues(
-            array(
-                array ('Dict' => 'AccountType', 'Code' => 'Client'),
-                array ('Dict' => 'AccountFace', 'Code' => 'Legal'),
-                array ('Dict' => 'AccountState', 'Code' => 'C'),
-                array ('Dict' => 'Category', 'Code' => 'D')
-            ), $con, $result
-        );
+        $this->getValuesFromTables($result, array(
+            '{AccountType}' => 'Client',
+            '{AccountFace}' => 'Legal',
+            '{AccountState}' => 'C',
+            '{Category}' => 'D',
+        ));
 
         // Ответственный
         $UserName = GetUserName();
@@ -45,5 +43,27 @@ class s_Account extends Config
         $result = FieldValueFormat('FirstContactDate', $Date, null, $result);
 
         return $result;
+    }
+
+    public function onBeforePostRegionID($parameters)
+    {
+        $value = $this->getActualValue($parameters['old_data'], 
+                $parameters['new_data'], 'RegionID');
+        if (!$value) {
+            return null;
+        }
+        return GetLinkedValues('Region', $value, array('Country'), 
+                $this->connection);
+    }
+
+    public function onBeforePostCityID($parameters)
+    {
+        $value = $this->getActualValue($parameters['old_data'], 
+                $parameters['new_data'], 'CityID');
+        if (!$value) {
+            return null;
+        }
+        return GetLinkedValues('City', $value, array('Country', 'Region'), 
+                $this->connection);
     }
 }

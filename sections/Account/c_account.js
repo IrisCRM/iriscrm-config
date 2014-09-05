@@ -1,32 +1,48 @@
 /**
  * Скрипт карточки компании
  */
-
 irisControllers.classes.c_Account = IrisCardController.extend({
 
+  extensions: ['Address'],
+
   events: {
-      'field:edited #CountryID': 'onChangeCountryID',
-      'field:edited #RegionID': 'onChangeRegionID',
-      'field:edited #CityID': 'onChangeCityID',
-      'click #EmailLink': 'onClickEmailLink'
+    'field:edited #CountryID': 'onChangeCountryID',
+    'field:edited #RegionID': 'onChangeRegionID',
+    'field:edited #CityID': 'onChangeCityID',
+    'click #_Email': 'onClickEmailLink'
   },
 
-  onChangeCountryID: function () {
-    common_filtercity(this.el, 'c');
+  onChangeCountryID: function(event) {
+    this.autoEditEventsEnabled = false;
+    this.filterAddress('CountryID');
+    this.autoEditEventsEnabled = true;
   },
 
-  onChangeRegionID: function (event) {
-    common_filtercity(this.el.id, 'r');
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), event.target.id, 
-      null, true);
+  onChangeRegionID: function(event) {
+    var self = this;
+    this.onChangeEvent(event, {
+      disableEvents: true,
+      rewriteValues: true,
+      letClearValues: true,
+      onApply: function() {
+        self.filterAddress('RegionID');
+      }
+    });
   },
 
-  onChangeCityID: function (event) {
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), event.target.id, 
-      null, true);
+  onChangeCityID: function(event) {
+    var self = this;
+    this.onChangeEvent(event, {
+      disableEvents: true,
+      rewriteValues: false,
+      letClearValues: false,
+      onApply: function() {
+        self.filterAddress();
+      }
+    });
   },
 
-  onClickEmailLink: function () {
+  onClickEmailLink: function() {
     // Email to primary contact
     var contactid = this.fieldValue('PrimaryContactID');
     if (contactid != null) {
@@ -43,15 +59,17 @@ irisControllers.classes.c_Account = IrisCardController.extend({
   /**
    * Инициализация карточки
    */
-  onOpen: function () {
+  onOpen: function() {
     // Фильтрация для поля основной контакт
     this.getField('PrimaryContactID').attr('filter_where',
         "t0.accountid='" + this.fieldValue('_id') + "'");
 
     // Нарисуем конвертик полю основной контакт
-    this.getField('PrimaryContactID').parent().after(
-        '<td style="width: 20px;">' + 
-        '<div id="EmailLink" class="email_img"></div></td>');
+    this.addButtonForField({
+      fieldId: 'PrimaryContactID',
+      buttonId: '_Email',
+      iconClass: 'envelope'
+    });
     
     /*
     // Если запись редактируется
@@ -67,7 +85,7 @@ irisControllers.classes.c_Account = IrisCardController.extend({
     }
     */
 
-    common_filtercity(this.el, '');
+    this.filterAddress();
   }
 
 });

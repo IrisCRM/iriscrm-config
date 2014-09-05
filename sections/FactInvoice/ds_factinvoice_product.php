@@ -43,10 +43,12 @@ class ds_FactInvoice_Product extends DocumentConfig
         }
 
         // Расчёт суммы документа
-        $this->updateParentAmount($parent_id);
+        $result = $this->updateParentAmount($parent_id);
 
         // Перенумеруем продукты при необходимости
         $this->renumberProducts($old_data, $new_data, $id);
+
+        return $result;
     }
 
     public function onBeforePostProductID($parameters) {

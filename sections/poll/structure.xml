@@ -43,32 +43,36 @@
 	  
     <EDITCARD name="c_Poll" caption="Опрос" width="800" height="460" 
       layout="1, 2,   1, 2, 2,   1, 2, 1, 1" 
-      js_path="full" 
-      php_on_prepare="poll_onprepare">
+      js_path="full" php_on_prepare="poll_onprepare">
       <ELEMENTS row_type="fk_column">
-        <FIELD elem_type="text" caption="Название" db_field="name" mandatory="yes" 
-          datatype="string" row_type="common"/>
+        <FIELD elem_type="text" caption="Название" db_field="name" 
+          mandatory="yes" datatype="string" row_type="common"/>
         <FIELD elem_type="text" caption="Код" db_field="code" mandatory="no" 
           datatype="string" row_type="common"/>
         <FIELD elem_type="spacer"/>
         <FIELD elem_type="spacer"/>
-        <FIELD elem_type="select" caption="Тип" db_field="polltypeid" mandatory="no" 
-          datatype="id" row_type="fk_column" row_type_parent_table="iris_polltype" 
+        <FIELD elem_type="select" caption="Тип" db_field="polltypeid" 
+          mandatory="no" datatype="id" row_type="fk_column" 
+          row_type_parent_table="iris_polltype" 
           row_type_parent_display_column="name"/>
         <FIELD elem_type="spacer"/>
-        <FIELD elem_type="select" caption="Состояние" db_field="PollStateID" mandatory="no" 
-          datatype="id" row_type="fk_column" row_type_parent_table="iris_pollstate" 
+        <FIELD elem_type="select" caption="Состояние" db_field="PollStateID"
+          mandatory="no" datatype="id" row_type="fk_column" 
+          row_type_parent_table="iris_pollstate" 
           row_type_parent_display_column="name"/>
         <FIELD elem_type="spacer"/>
         <FIELD elem_type="spacer"/>
-        <FIELD elem_type="lookup" caption="Ответственный" db_field="OwnerID" mandatory="no" 
-          filter_where="T0.id in (select id from iris_getowners())" datatype="id" row_type="fk_column" 
-          row_type_parent_source_type="grid" row_type_parent_source_name="Contact" 
+        <FIELD elem_type="lookup" caption="Ответственный" db_field="OwnerID"
+          mandatory="no" 
+          filter_where="T0.id in (select id from iris_getowners())" 
+          datatype="id" row_type="fk_column" row_type_parent_source_type="grid"
+          row_type_parent_source_name="Contact" 
           row_type_parent_display_column="Name"/>
         <FIELD elem_type="spacer"/>
         <FIELD elem_type="spacer"/>
-        <FIELD elem_type="textarea" textarea_rows="6" caption="Описание" db_field="description" mandatory="no" 
-          datatype="string" row_type="common"/>
+        <FIELD elem_type="textarea" textarea_rows="6" caption="Описание" 
+          db_field="description" mandatory="no" datatype="string" 
+          row_type="common"/>
       </ELEMENTS>
     </EDITCARD>
 	  

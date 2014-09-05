@@ -18,12 +18,12 @@ irisControllers.classes.c_Object = IrisCardController.extend({
   onChangeRegionID: function (event) {
     common_filtercity(this.el.id, 'r');
     c_Common_LinkedField_OnChange($(this.el.id).down('form'), event.target.id, 
-      null, true);
+      null, false);
   },
 
   onChangeCityID: function (event) {
     c_Common_LinkedField_OnChange($(this.el.id).down('form'), event.target.id, 
-      null, true);
+      null, false);
   },
 
   onChangeLookup: function (event) {

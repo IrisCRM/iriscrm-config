@@ -14,8 +14,7 @@ irisControllers.classes.g_Account = IrisGridController.extend({
         buttons: [
           {
             name: T.t('История'), 
-            onclick: "irisControllers.objects.g_Account" + this.el.id +
-              ".onPrint('" + this.el.id + "', 'r_AccountHistory');"
+            onclick: this.instanceName() + ".onPrintHistory();"
           }
         ]
       }
@@ -23,16 +22,11 @@ irisControllers.classes.g_Account = IrisGridController.extend({
   },
 
   // Подготовка для печати отчета
-  onPrint: function (p_grid_id, p_report_name) {
-    var l_ResArray = new Array();
-    l_ResArray = GetGridInfo(p_grid_id, 'update');
-    var rec_id = l_ResArray['selected_rec_id'];
-
-    if (p_report_name == 'r_AccountHistory') {
-      var l_wnd_size = "width=800";
-      var NewWin = open(g_path + this.script + "?_p_id=" + rec_id, 
-          p_report_name + "_window", 
-          l_wnd_size + ",status=no,toolbar=no,menubar=yes,scrollbars=yes");
+  onPrintHistory: function (p_report_name) {
+    if (this.getSelectedId() != null) {
+      open(g_path + this.script + "?_p_id=" + this.getSelectedId(), 
+          "r_AccountHistory_window", 
+          "width=800,status=no,toolbar=no,menubar=yes,scrollbars=yes");
     }
   }
 

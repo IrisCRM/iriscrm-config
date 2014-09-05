@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by miv (home) -->
 <MENU_TAB>
    <TAB section_type="common" caption="Выпуски" table="iris_Issue" order_pos="6" image_name="products.png">
       <GRID lines_count="1" sort_column="1" sort_direction="desc">
@@ -37,7 +36,7 @@
             <ITEM db_field="OwnerID" caption="Ответственный" width="20%" row_type="fk_column" row_type_parent_table="iris_Contact" row_type_parent_display_column="Name" display_format="none"/>
          </COLUMNS>
       </GRID_WND>
-      <EDITCARD name="c_Issue" caption="Выпуск" width="750" height="320" 
+      <EDITCARD name="c_Issue" caption="Выпуск" width="750" height="450" 
          layout="1, 1, 2, 2, 1, 2, 2, 1, 1">
          <ELEMENTS>
             <FIELD elem_type="lookup" caption="Продукт" db_field="ProductID" mandatory="yes" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Product" row_type_parent_display_column="Name"/>

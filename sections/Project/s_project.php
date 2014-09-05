@@ -13,6 +13,59 @@ class s_Project extends Config
         $this->_section_name = substr(__CLASS__, 2);
     }
 
+    public function onBeforePostAccountID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'AccountID');
+        $this->getValuesFromTables($result, array(
+            '{Account}' => array(
+                'filter' => 'id',
+                'value' => $id,
+                'result' => 'PrimaryContactID',
+                'alias' => 'ContactID',
+                'left' => '{Contact}',
+            ),
+        ));
+        return $result;
+    }
+
+    public function onBeforePostContactID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'ContactID');
+        return $this->getLinkedValues('{Contact}', $id, array('{{Account}}'));
+    }
+
+    public function onBeforePostObjectID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'ObjectID');
+        return $this->getLinkedValues('{Object}', $id, 
+                array('{{Account}}', '{{Contact}}'));
+    }
+
+    public function onBeforePostProjectStageID($params) 
+    {
+        $id = $this->fieldValue($params['old_data'], 'ProjectStageID');
+        return $this->getProbability($id);
+    }
+
+    public function onBeforePostProjectStateID($params) 
+    {
+        $id = $this->fieldValue($params['old_data'], 'ProjectStateID');
+        $result = null;
+        // Изменение состояния ведет к изменению стадии (если завершено)
+        $state = $this->_DB->getRecordById($id, '{ProjectState}', 'code');
+        if ($state['code'] == 'Finished') {
+            $stage = $this->_DB->getRecordByCode('Finished', '{ProjectStage}', 
+                    array('probability', 'id'));
+            $this->mergeFields($result, $this->formatField('Probability', 
+                    $stage['probability']));
+            $this->mergeFields($result, $this->formatField('ProjectStageID', 
+                    $stage['id']));
+            $date = $this->_Local->dbDateTimeToLocal($this->_DB->datetime());
+            $this->mergeFields($result, $this->formatField('FinishDate', $date));
+        }
+        return $result;
+    }
+
     public function onPrepare($params) 
     {
         // Заполняем значения по умолчанию только при создании новой записи

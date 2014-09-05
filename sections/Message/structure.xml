@@ -29,7 +29,7 @@
             <ITEM db_field="statusID" caption="Статус" width="15%" row_type="fk_column" row_type_parent_table="iris_messagestatus" row_type_parent_display_column="Name"/>
          </COLUMNS>
       </GRID_WND>
-      <EDITCARD name="c_Message" caption="Сообщение" width="650" height="280" layout="2, 1, 1, 2, 2, 2" js_source_file="config/sections/Message/c_message.js" js_path="full" js_function="c_Message_Init" on_after_save="c_message_onAfterSave" php_source_file="config/sections/Message/s_message.php" php_on_before_post="Message_BeforePost">
+      <EDITCARD name="c_Message" caption="Сообщение" width="720" height="380" layout="2, 1, 1, 2, 2, 2" js_source_file="config/sections/Message/c_message.js" js_path="full" js_function="c_Message_Init" on_after_save="c_message_onAfterSave" php_source_file="config/sections/Message/s_message.php" php_on_before_post="Message_BeforePost">
          <ELEMENTS>
             <FIELD elem_type="lookup" caption="Кому" db_field="RecipientID" mandatory="yes" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Contact" row_type_parent_display_column="Name"/>
             <FIELD elem_type="lookup" caption="Автор" db_field="AutorID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Contact" row_type_parent_display_column="Name"/>

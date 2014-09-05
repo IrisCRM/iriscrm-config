@@ -4,8 +4,15 @@
 
 var table_prefix = "iris_";
 var fields_in_lower_case = false;
-var card_tab_selector = 'li.card_page';
-var card_row_selector = 'tr.form_row';
+
+if ('bootstrap' == g_vars.template) {
+  var card_tab_selector = '.iris-card-tab';
+  var card_row_selector = '.form-group';
+}
+else {
+  var card_tab_selector = 'li.card_page';
+  var card_row_selector = 'tr.form_row';
+}
 
 var IrisDomain = {
   control_type: {

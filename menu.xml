@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <MENU type="mini">
 
-   <GROUP name="Общее">
+   <GROUP name="CRM">
       <ITEM name="Account" quicknew="1"/>
       <ITEM name="Contact" quicknew="1"/>
       <ITEM name="Object" quicknew="1"/>
@@ -18,10 +18,13 @@
       <ITEM name="Issue"/>
    </GROUP>
 
-   <GROUP name="Сервис">
-      <ITEM name="Incident" quicknew="1"/>
-      <ITEM name="Answer"/>
-      <ITEM name="Bug" quicknew="1"/>
+   <GROUP name="Документооборот">
+      <ITEM name="Offer" quicknew="1"/>
+      <ITEM name="Pact" quicknew="1"/>
+      <ITEM name="Invoice" quicknew="1"/>
+      <ITEM name="FactInvoice"/>
+      <ITEM name="Document"/>
+      <ITEM name="File"/>
    </GROUP>
 
    <GROUP name="Маркетинг">
@@ -32,13 +35,10 @@
       <ITEM name="interview" quicknew="1"/>
    </GROUP>
 
-   <GROUP name="Документооборот">
-      <ITEM name="Offer" quicknew="1"/>
-      <ITEM name="Pact" quicknew="1"/>
-      <ITEM name="Invoice" quicknew="1"/>
-      <ITEM name="FactInvoice"/>
-      <ITEM name="Document"/>
-      <ITEM name="File"/>
+   <GROUP name="Сервис">
+      <ITEM name="Incident" quicknew="1"/>
+      <ITEM name="Answer"/>
+      <ITEM name="Bug" quicknew="1"/>
    </GROUP>
 
    <GROUP name="Аналитика">

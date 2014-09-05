@@ -22,7 +22,7 @@
             <ITEM caption="Окончание рассылки" db_field="startdate" width="20%" row_type="common" row_datatype="datetime"/>
 		</COLUMNS>
 	</GRID_WND>
-	<EDITCARD name="c_Mailing" caption="Рассылка" width="1010" height="445" layout="1, 2, 1, 1, 1, 2" js_source_file="config/sections/Mailing/c_mailing.js" js_function="c_mailing_card_init" js_path="full">
+	<EDITCARD name="c_Mailing" caption="Рассылка" width="1010" height="545" layout="1, 2, 1, 1, 1, 2" js_source_file="config/sections/Mailing/c_mailing.js" js_function="c_mailing_card_init" js_path="full">
 		<ELEMENTS>
 			<FIELD elem_type="text" caption="Название" db_field="Name" mandatory="yes" datatype="string" row_type="common"/>
 

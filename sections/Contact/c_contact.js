@@ -4,98 +4,84 @@
 
 irisControllers.classes.c_Contact = IrisCardController.extend({
 
+  extensions: ['Address'],
+
   events: {
     'keyup #Name': 'onChangeName',
     'lookup:changed #CountryID': 'onChangeCountryID',
     'lookup:changed #RegionID': 'onChangeRegionID',
     'lookup:changed #CityID': 'onChangeCityID',
     'lookup:changed #AccountID, #ObjectID': 'onChangeLookup',
-    'mouseover #_SkypeIcon': 'onMouseOverSkype',
-    'mouseout #_SkypeIcon': 'onMouseOutSkype'
+    'click #_Skype': 'onClickSkype'
   },
 
+  /**
+   * Обращение = Имя отчество
+   */
   onChangeName: function () {
-    var p_form = $(this.el).down('form');
-    // Помещаем в массив слова, разделенные пробелом
-    var l_array = p_form.Name.value.split(' ');
-
-    var l_array_mod = new Array();
-    var l_first = '';
-    
-    //n = 0;
-    for (i = 0, n = 0; i < l_array.length; i++) {
-      if (l_array[i] != '') {
-        if (n != 0) {
-          l_array_mod[n++ - 1] = l_array[i]; // убираем лишние пробелы
-        }
-        else {
-          l_first = l_array[i];
-          n++;
-        }
-      }
-    }
-
-    if (l_array_mod.length == 0) {
-      p_form.SpeakName.value = l_first;
+    var name = this.fieldValue('Name').replace(/( )+/g, ' ').trim().split(' ');
+    if (name.length <= 1) {
+      this.fieldValue('SpeakName', name[0]);
       return;
     }
-
-    if (l_array_mod.length > 0) {
-      // Если только одно слово, то вывести его
-      p_form.SpeakName.value = l_array_mod[0];
-    }
-    
-    // Выводим остальные слова
-    for (i = 1; i < l_array_mod.length; i++) { 
-      p_form.SpeakName.value += ' ' + l_array_mod[i];
-    }
+    this.fieldValue('SpeakName', name.splice(1, Number.MAX_VALUE).join(' '));
   },
 
   onChangeCountryID: function () {
-    common_filtercity(this.el.id, 'c');
+    this.autoEditEventsEnabled = false;
+    this.filterAddress('CountryID');
+    this.autoEditEventsEnabled = true;
   },
 
   onChangeRegionID: function (event) {
-    common_filtercity(this.el, 'r');
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), event.target.id, 
-      null, true);
+    var self = this;
+    this.onChangeEvent(event, {
+      disableEvents: true,
+      rewriteValues: true,
+      letClearValues: true,
+      onApply: function() {
+        self.filterAddress('RegionID');
+      }
+    });
   },
 
   onChangeCityID: function (event) {
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), event.target.id, 
-      null, true);
+    var self = this;
+    this.onChangeEvent(event, {
+      disableEvents: true,
+      rewriteValues: false,
+      letClearValues: false,
+      onApply: function() {
+        self.filterAddress();
+      }
+    });
   },
 
   onChangeLookup: function (event) {
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), event.target.id, 
-      null, true, undefined, true);
+    this.onChangeEvent(event, {
+      disableEvents: true
+    });
   },
 
-  onMouseOverSkype: function () {
-    var skype = this.$el.find('#Skype').val();
-    if (skype != '') {
-      this.$el.find('#_SkypeIconLink').attr('href', "skype:" + skype);  
-    }
+  onClickSkype: function() {
+    skype_to(this.fieldValue('Skype'));
   },
-
-  onMouseOutSkype: function () {
-    this.$el.find('#_SkypeIconLink').attr('href', "#");
-  },
-
 
   onOpen: function() {
     // Задизаблим
     this.getField('balance').attr('readonly', true);
 
     // Нарисуем иконку skype
-    this.getField('Skype').parent().after(
-        '<td style="width: 21px;"><a id="_SkypeIconLink" href="#">' +
-        '<div id="_SkypeIcon" class="skype_img"></div></a></td>');
+    this.addButtonForField({
+      fieldId: 'Skype',
+      buttonId: '_Skype',
+      iconClass: 'earphone'
+    });
 
     // Если редактируется запись
     if (this.parameter('mode') != 'insert') {
       // Кнопка печать...
-      printform_createCardHeaderButton(this.el, 'top', T.t('Печать')+'&hellip;');    
+      printform_createCardHeaderButton(this.el.id, 'top', T.t('Печать')+'&hellip;');    
 
       /*
       // Если администратор, то нарисуем кнопку "Сменить ответственного"
@@ -108,6 +94,6 @@ irisControllers.classes.c_Contact = IrisCardController.extend({
       */
     }
 
-    common_filtercity(this.el.id, '');
+    this.filterAddress();
   }
 });

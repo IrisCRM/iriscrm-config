@@ -26,7 +26,7 @@ irisControllers.classes.g_Invoice = IrisGridController.extend({
     ], 'iris_Invoice');
     
     // Печатные формы
-    printform_createButton(this.el.id, T.t('Печать') + '&hellip;');
+    this.drawPrintFormButton();
   }
 
 });

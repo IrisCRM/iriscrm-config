@@ -20,17 +20,20 @@ function call_to(p_this) {
 	//Если это карточка дела, то сформируем ссылку callto 
 	if ((primaryElem.form._source_name.value == 'Task') && (primaryElem.form._detail_name.value == '')) {
 		if (addlElem != undefined) {
-			if (number == '')
+			if (number == '') {
 				number = addlElem.getAttribute('phone_value');
-			else
-			if (addlElem.getAttribute('phone_value') != '')
+			}
+			else if (addlElem.getAttribute('phone_value') != '') {
 				number = number+'www'+addlElem.getAttribute('phone_value');
+			}
 		}
 
-		if (number != '')
+		if (number != '') {
+			g_vars.do_exit = true;
 			document.location.href='callto:' + number;	
-
-	} else {
+		}
+	}
+	else {
 		// откроем карточку дела с типом "звонок"
 		openCard({
 			source_name: 'Task', 
@@ -40,5 +43,12 @@ function call_to(p_this) {
 				phoneaddl: addlnumber
 			})
 		});
+	}
+}
+
+function skype_to(number) {
+	if (number != '') {
+		g_vars.do_exit = true;
+		document.location.href = 'skype:' + number;	
 	}
 }

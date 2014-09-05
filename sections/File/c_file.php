@@ -130,7 +130,7 @@ class c_File extends Config
 
         $id = GetArrayValueByParameter(
                 $result['FieldValues'], 'Name', 'InvoiceID', 'Value');
-        $result = GetLinkedValues('Invoie', $id, 
+        $result = GetLinkedValues('Invoice', $id, 
                 array('Account', 'Contact', 'Project', 'Pact'), 
                 $this->connection, $result);
 

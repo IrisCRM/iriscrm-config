@@ -29,9 +29,9 @@
                <ITEM caption="Дата с" where_clause="((T0.StartDate &gt;= _iris_string_to_datetime['#VALUE#']) or (T0.FinishDate &gt;= _iris_string_to_datetime['#VALUE#']))" field="StartDate"/>
                <ITEM caption="Дата по" where_clause="((T0.StartDate &lt;= _iris_string_to_datetime['#VALUE#']) or (T0.FinishDate &lt;= _iris_string_to_datetime['#VALUE#']))" field="StartDate"/>
             </ITEM>
-			<ITEM caption="Состояние" item_style="font-weight: bold;" auto_table="iris_taskstate" auto_filter_column="id" auto_display_column="name" auto_sort_column="orderpos" auto_where_clause="T0.taskstateid='#VALUE#'"/>
-			<ITEM caption="Тип" item_style="font-weight: bold;" auto_table="iris_tasktype" auto_filter_column="id" auto_display_column="name" auto_sort_column="name" auto_where_clause="T0.tasktypeid='#VALUE#'"/>
-			<ITEM caption="Важность" item_style="font-weight: bold;" auto_table="iris_taskimportance" auto_filter_column="id" auto_display_column="name" auto_sort_column="orderpos" auto_where_clause="T0.taskimportanceid='#VALUE#'"/>
+   			<ITEM caption="Состояние" item_style="font-weight: bold;" auto_table="iris_taskstate" auto_filter_column="id" auto_display_column="name" auto_sort_column="orderpos" auto_where_clause="T0.taskstateid='#VALUE#'"/>
+   			<ITEM caption="Тип" item_style="font-weight: bold;" auto_table="iris_tasktype" auto_filter_column="id" auto_display_column="name" auto_sort_column="name" auto_where_clause="T0.tasktypeid='#VALUE#'"/>
+   			<ITEM caption="Важность" item_style="font-weight: bold;" auto_table="iris_taskimportance" auto_filter_column="id" auto_display_column="name" auto_sort_column="orderpos" auto_where_clause="T0.taskimportanceid='#VALUE#'"/>
          </FILTERS>
       </GRID>
       <GRID_WND lines_count="1" sort_column="3" sort_direction="desc" caption="Дела" width="600" height="280">
@@ -49,11 +49,12 @@
          </COLUMNS>
       </GRID_WND>
       <EDITCARD name="c_Task" caption="Дело" width="780" height="520" 
-         layout="2, 1, 2, 2, 2, 2, 1,  1, 2,  1, 2, 1,  1, 1, 2,    1, 2, 2, 2, 2, 2, 2, 2, 2, 2" 
+         layout="2, 1, 2, 2, 2, 2, 1,  1, 2,  1, 2, 1,  1, 1, 2,    1, 2, 2, 2, 2, 2, 2, 2, 2, 2,  2" 
          show_card_top_panel="yes">
          <TABS>
             <TAB caption="Основная информация" rows="15"/>
             <TAB caption="Связи" rows="8"/>
+            <TAB caption="Дополнительно" rows="1"/>
          </TABS>
          <ELEMENTS>
             <FIELD elem_type="lookup" caption="Автор" db_field="CreateID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Contact" row_type_parent_display_column="Name"/>
@@ -98,6 +99,8 @@
             <FIELD elem_type="lookup" caption="Платеж" db_field="PaymentID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Payment" row_type_parent_display_column="Name"/>
             <FIELD elem_type="lookup" caption="Накладная" db_field="FactInvoiceID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="FactInvoice" row_type_parent_display_column="Name"/>
             <FIELD elem_type="lookup" caption="Документ" db_field="DocumentID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Document" row_type_parent_display_column="Name"/>
+            <FIELD elem_type="checkbox" row_type_checked_index="1" caption="Не отображать в календаре" db_field="hidefromcalendar" mandatory="no" datatype="int" row_type="domain" row_type_domain_name="d_yn_binary"/>
+            <FIELD elem_type="spacer"/>
             <FIELD elem_type="lookup" caption="Предыдущее дело" db_field="PrevRecordID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Task" row_type_parent_display_column="Name"/>
          </ELEMENTS>
       </EDITCARD>

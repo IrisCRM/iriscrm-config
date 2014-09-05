@@ -1,5 +1,4 @@
 ﻿<?xml version="1.0"?>
-<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by miv (home) -->
 <MENU_TAB>
    <TAB section_type="common" caption="Разделы" table="iris_Section" order_pos="18" image_name="sections.bmp">
       <GRID lines_count="1">

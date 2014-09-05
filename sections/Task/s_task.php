@@ -4,13 +4,218 @@
  */
 class s_Task extends Config
 {
-    public function __construct($Loader)
+    public function __construct()
     {
-        $this->_section_name = substr(__CLASS__, 2);
-        parent::__construct($Loader, array(
-                'config/common/Lib/lib.php',
-                'config/common/Lib/access.php',
+        parent::__construct(array(
+            'config/common/Lib/lib.php',
+            'config/common/Lib/access.php',
         ));
+    }
+
+    public function onBeforePostContactID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'ContactID');
+        return $this->getLinkedValues('{Contact}', $id, 
+                array('{{Account}}', '{{Object}}'));
+    }
+
+    public function onBeforePostObjectID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'ObjectID');
+        return $this->getLinkedValues('{Object}', $id, 
+                array('{{Account}}', '{{Contact}}'));
+    }
+
+    public function onBeforePostProjectID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'ProjectID');
+        return $this->getLinkedValues('{Project}', $id, 
+                array('{{Account}}', '{{Object}}', '{{Contact}}'));
+    }
+
+    public function onBeforePostIssueID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'IssueID');
+        return $this->getLinkedValues('{Issue}', $id, 
+                array('{{Product}}'));
+    }
+
+    public function onBeforePostBugID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'BugID');
+        $result = $this->getLinkedValues('{Bug}', $id, 
+                array('{{Project}}', '{{Issue}}'));
+
+        $id = $this->fieldValue($result, 'ProjectID');
+        $this->mergeFields($result, $this->getLinkedValues('{Project}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Object}}')), 
+                false, true);
+
+        $id = $this->fieldValue($result, 'IssueID');
+        $this->mergeFields($result, $this->getLinkedValues('{Issue}', $id, 
+                array('{{Product}}')), 
+                false, true);
+
+        return $result;
+    }
+
+    public function onBeforePostIncidentID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'IncidentID');
+        return $this->getLinkedValues('{Incident}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Object}}',
+                '{{Product}}', '{{Issue}}', '{{Marketing}}', '{{Space}}',
+                '{{Project}}', '{{Offer}}', '{{Pact}}', '{{Invoice}}',
+                '{{Payment}}', '{{FactInvoice}}', '{{Document}}'));
+    }
+
+    public function onBeforePostOfferID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'OfferID');
+        $result = $this->getLinkedValues('{Offer}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}'));
+
+        $id = $this->fieldValue($result, 'ProjectID');
+        $this->mergeFields($result, $this->getLinkedValues('{Project}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Object}}')), 
+                false, true);
+
+        return $result;
+    }
+
+    public function onBeforePostPactID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'PactID');
+        $result = $this->getLinkedValues('{Pact}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}'));
+
+        $id = $this->fieldValue($result, 'ProjectID');
+        $this->mergeFields($result, $this->getLinkedValues('{Project}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Object}}')), 
+                false, true);
+
+        return $result;
+    }
+
+    public function onBeforePostInvoiceID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'InvoiceID');
+        $result = $this->getLinkedValues('{Invoice}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}',
+                '{{Pact}}', '{{Offer}}'));
+
+        $id = $this->fieldValue($result, 'PactID');
+        $this->mergeFields($result, $this->getLinkedValues('{Pact}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}')), 
+                false, true);
+
+        $id = $this->fieldValue($result, 'ProjectID');
+        $this->mergeFields($result, $this->getLinkedValues('{Project}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Object}}')), 
+                false, true);
+
+        return $result;
+    }
+
+    public function onBeforePostPaymentID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'PaymentID');
+        $result = $this->getLinkedValues('{Payment}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}',
+                '{{Pact}}', '{{Invoice}}'));
+
+        $id = $this->fieldValue($result, 'InvoiceID');
+        $this->mergeFields($result, $this->getLinkedValues('{Invoice}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}', '{{Pact}}')), 
+                false, true);
+
+        $id = $this->fieldValue($result, 'PactID');
+        $this->mergeFields($result, $this->getLinkedValues('{Pact}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}')), 
+                false, true);
+
+        $id = $this->fieldValue($result, 'ProjectID');
+        $this->mergeFields($result, $this->getLinkedValues('{Project}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Object}}')), 
+                false, true);
+
+        return $result;
+    }
+
+    public function onBeforePostFactInvoiceID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'FactInvoiceID');
+        $result = $this->getLinkedValues('{FactInvoice}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}',
+                '{{Pact}}', '{{Invoice}}'));
+
+        $id = $this->fieldValue($result, 'InvoiceID');
+        $this->mergeFields($result, $this->getLinkedValues('{Invoice}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}', '{{Pact}}')), 
+                false, true);
+
+        $id = $this->fieldValue($result, 'PactID');
+        $this->mergeFields($result, $this->getLinkedValues('{Pact}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}')), 
+                false, true);
+
+        $id = $this->fieldValue($result, 'ProjectID');
+        $this->mergeFields($result, $this->getLinkedValues('{Project}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Object}}')), 
+                false, true);
+
+        return $result;
+    }
+
+    public function onBeforePostDocumentID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'DocumentID');
+        $result = $this->getLinkedValues('{Document}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}', '{{Pact}}'));
+
+        $id = $this->fieldValue($result, 'PactID');
+        $this->mergeFields($result, $this->getLinkedValues('{Pact}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Project}}')), 
+                false, true);
+
+        $id = $this->fieldValue($result, 'ProjectID');
+        $this->mergeFields($result, $this->getLinkedValues('{Project}', $id, 
+                array('{{Account}}', '{{Contact}}', '{{Object}}')), 
+                false, true);
+
+        return $result;
+    }
+
+    public function onBeforePostTaskResultID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'TaskResultID');
+        $task = $this->_DB->getRecordById($id, '{TaskResult}', 'code');
+
+        $result = null;
+        if ($task['code'] == 'Completed') {
+            $this->getValuesFromTables($result, array(
+                '{TaskState}' => 'Finished',
+            ));
+            $date = $this->_Local->dbDateTimeToLocal($this->_DB->datetime());
+            $this->mergeFields($result, $this->formatField('FinishDate', $date));
+            $this->mergeFields($result, $this->formatField('IsRemind', 0));
+        }
+
+        return $result;
+    }
+
+    public function onBeforePostNextTaskTargetID($params)
+    {
+        $id = $this->fieldValue($params['old_data'], 'NextTaskTargetID');
+        $target = $this->_DB->getRecordById($id, '{TaskTarget}', 
+                array('days', 'hours', 'minutes'));
+
+        $next_date = $this->_Local->timeToLocalDateTime(
+                $this->_Local->dbDateToTime($this->_DB->datetime()) + 
+                60 * 60 * 24 * $target['days'] +
+                60 * 60 * $target['hours'] +
+                60 * $target['minutes']);
+        return $this->formatField('NextStartDate', $next_date);
     }
 
     public function onPrepare($params) 
@@ -36,12 +241,12 @@ class s_Task extends Config
         $this->mergeFields($result, $this->formatField('StartDate', $date));
 
         // Ответственный
-        $session = IrisSession::getInstance();
+        $User = IrisUser::getInstance();
         $this->mergeFields($result, $this->formatField('OwnerID', 
-                $session->userId(), $session->userName()));
+                $User->property('id'), $User->property('name')));
         // Автор
         $this->mergeFields($result, $this->formatField('CreateID', 
-                $session->userId(), $session->userName()));
+                $User->property('id'), $User->property('name')));
 
         $card_params = null;
         if (isset($params['card_params'])) {
@@ -130,7 +335,7 @@ class s_Task extends Config
         $targetid = $this->fieldValue($new_data, 'NextTaskTargetID');
         if ($cnt == 0 && $targetid) {
             $data = $new_data;
-            $this->removeFields($data, array(
+            $this->removeField($data, array(
                 'TaskResultID',
                 'NextTaskTargetID',
                 'NextStartDate',
@@ -154,17 +359,24 @@ class s_Task extends Config
                     60 * $target['termminutes']);
             $nextstartdate = $this->_Local->dbDateTimeToLocal($nextstartdate);
             $nextfinishdate = $this->_Local->dbDateTimeToLocal($nextfinishdate);
-            $this->mergeFields($data, $this->formatField('Name', $target['name']));
+
+            $task_name = $target['name'];
+            $account_id = $this->fieldValue($new_data, 'accountid');
+            if ($account_id) {
+                $account = $this->_DB->getRecordByID($account_id, '{Account}', 'name');
+                if ($account && $account['name']) {
+                    $task_name = $account['name'] . ': ' . $task_name;
+                }
+            }
+
+            $this->mergeFields($data, $this->formatField('Name', $task_name));
             $this->mergeFields($data, $this->formatField('TaskTargetID', $targetid));
             $this->mergeFields($data, $this->formatField('PrevRecordID', $id));
             $this->mergeFields($data, $this->formatField('StartDate', $nextstartdate));
             $this->mergeFields($data, $this->formatField('FinishDate', $nextfinishdate));
 
             // Создаем новое дело с вызывом обработчиков и добавлением прав
-            $this->saveRecord($data, array(
-                'mode' => 'insert',
-                'source_name' => 'Task',
-            ));
+            $this->saveRecord($data);
         }
 
         // Если требуется переключить стадию заказа, то переключаем

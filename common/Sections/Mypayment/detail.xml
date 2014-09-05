@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by miv (home) -->
 <EXTERNAL_DETAIL>
    <DETAIL detail_table="iris_Payment">
             <GRID lines_count="1" sort_column="1" sort_direction="desc" display_search="no">

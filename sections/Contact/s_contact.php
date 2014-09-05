@@ -10,7 +10,6 @@ class s_Contact extends Config
         $this->_section_name = substr(__CLASS__, 2);
     }
 
-
     function onPrepare($params) 
     {
         // Заполняем значения по умолчанию только при создании новой записи
@@ -46,7 +45,7 @@ class s_Contact extends Config
         return $result;
     }
 
-    // Функция вызывается перед сохранением карточки
+    // Перед сохранением карточки
     function onBeforePost($parameters) {
         $role_id = GetArrayValueByName($parameters['new_data']['FieldValues'], 
                 'AccessRoleID');
@@ -55,8 +54,30 @@ class s_Contact extends Config
         return $parameters['new_data'];
     }
 
-    // Функция вызывается после сохранения карточки
-    function onAfterPost($p_table, $p_id, $OldData, $NewData) {
+    public function onBeforePostRegionID($parameters)
+    {
+        $value = $this->getActualValue($parameters['old_data'], 
+                $parameters['new_data'], 'RegionID');
+        if (!$value) {
+            return null;
+        }
+        return GetLinkedValues('Region', $value, array('Country'), 
+                $this->connection);
+    }
+
+    public function onBeforePostCityID($parameters)
+    {
+        $value = $this->getActualValue($parameters['old_data'], 
+                $parameters['new_data'], 'CityID');
+        if (!$value) {
+            return null;
+        }
+        return GetLinkedValues('City', $value, array('Country', 'Region'), 
+                $this->connection);
+    }
+
+    // После сохранения карточки
+    public function onAfterPost($p_table, $p_id, $OldData, $NewData) {
         $account_id = GetArrayValueByName($NewData['FieldValues'], 'accountid');
         if ($account_id != null) {
             $con = db_connect();
@@ -68,5 +89,29 @@ class s_Contact extends Config
             $cmd = $con->prepare($sql);
             $cmd->execute(array(":contactid" => $p_id, ":accountid" => $account_id));
         }
+    }
+
+    function onBeforePostAccountID($parameters)
+    {
+        $value = $this->getActualValue($parameters['old_data'], 
+                $parameters['new_data'], 'AccountID');
+
+        $result = GetFormatedFieldValuesByFieldValue('Account', 'ID', 
+                $value, array('Address', 'ZIP', 'Scheme'), $this->connection);
+        $result = GetLinkedValues('Account', $value, 
+                array('Country', 'Region', 'City'), $this->connection, $result);
+        return $result;
+    }
+
+    function onBeforePostObjectID($parameters)
+    {
+        $value = $this->getActualValue($parameters['old_data'], 
+                $parameters['new_data'], 'ObjectID');
+
+        $result = GetFormatedFieldValuesByFieldValue('Object', 'ID', 
+                $value, array('Address', 'ZIP', 'Scheme'), $this->connection);
+        $result = GetLinkedValues('Object', $value, 
+                array('Country', 'Region', 'City', 'Account'), $this->connection, $result);
+        return $result;
     }
 }

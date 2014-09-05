@@ -1,221 +1,272 @@
-var Calendar = new function() {
-  var self = this;
-  var SCRIPT_URL = 'config/sections/Calendar/u_calendar.php';
-  var calendar = null;
+/**
+ * Скрипт раздела Календарь
+ */
 
-  this.init = function() {
-    g_Prepare_Custom_Section('<div id="calendar"></div>');
-    initCalendar();
-    initResizeEvent();
-  };
+irisControllers.classes.u_Calendar = IrisCardController.extend({
 
-  var getCalendarLanguage = function() {
-    // TODO: более корректно проверять язык
-    return (T.language || {}).name == 'English' ? 'en' : 'ru';
-  };
+  onOpen: function() {
+    var CALENDAR_ID = 'calendar';
+    var self = this;
+    g_Prepare_Custom_Section('<div id="' + CALENDAR_ID + '"></div>');
 
-  var updateEventWithJSONData = function(event, data) {
-    // TODO: найти корректный способ перевода JSON в Event object
-    data.start = jQuery.fullCalendar.moment.utc(data.start);
-    data.end = jQuery.fullCalendar.moment.utc(data.end);
-
-    for (var prop in data) {
-      if (!data.hasOwnProperty(prop)) {
-        continue;
-      }
-      event[prop] = data[prop];
-    }
-
-    if (!data.color) {
-      delete event.color;
-    }
-    if (!data.textColor) {
-      delete event.textColor;
-    }
-  };
-
-  var initCalendar = function() {
-    calendar = jQuery('#calendar').fullCalendar({
-      lang: getCalendarLanguage(),
-      height: calculateCalendarHeight(),
-      header: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'month,agendaWeek,agendaDay'
+    this.customFilters({
+      section: 'Calendar',
+      'class': 'u_Calendar',
+      method: 'getFiltersHTML',
+      containerId: 'filters_area',
+      onDraw: function(filters) {
+        self.Calendar.setFilters(filters);
+        self.Calendar.init(CALENDAR_ID);
       },
-      defaultView: 'agendaWeek',
-      slotEventOverlap: false,
-      defaultDate: moment().format('YYYY-MM-DD'),
+      onChange: function(filters) {
+        self.Calendar.setFilters(filters);
+        self.Calendar.refresh();
+      }
+    });
+  },
 
-      editable: true,
-      selectable: true,
-      selectHelper: true,
+  Calendar: {
+    SCRIPT_URL: 'config/sections/Calendar/q_calendar.php',
+    containerId: null,
+    calendar: null,
+    filters: [], // [Номер, значение][] выбранных фильтров
 
-      events: {
-        url: SCRIPT_URL,
+    init: function(p_containerId) {
+      this.containerId = p_containerId;
+      this.initCalendar();
+      this.initResizeEvent();
+    },
+
+    setFilters: function(data) {
+      this.filters = data;
+    },
+
+    refresh: function() {
+      jQuery('#' + this.containerId)
+          .fullCalendar('removeEventSource', this.SCRIPT_URL);
+      jQuery('#' + this.containerId)
+          .fullCalendar('removeEvents');
+      jQuery('#' + this.containerId)
+          .fullCalendar('addEventSource', this.getEventSource());
+      // calendar.fullCalendar('refetchEvents');
+    },
+
+    getEventSource: function() {
+      return {
+        url: this.SCRIPT_URL,
         type: 'POST',
         data: {
-          _func: 'getEvents'
+          _func: 'getEvents',
+          tmp: Math.random(),
+          filters: JSON.stringify(this.filters) // TODO: cross browser serialozation
         },
         error: function() {
           growler.growl('there was an error while fetching events!');
         }
-      },
+      };
+    },
 
-      loading: function(bool) {
-        jQuery('#calendar').css('opacity', bool ? 0.5 : 1);
-      },
+    getCalendarLanguage: function() {
+      // TODO: более корректно проверять язык
+      return (T.language || {}).name == 'English' ? 'en' : 'ru';
+    },
 
-      // move
-      eventDrop: function(event, revertFunc) {
-        jQuery.ajax({
-          url: SCRIPT_URL,
-          type: 'POST',
-          dataType: "json",
-          data: {
-            _func: 'moveEvent',
-            id: event.id,
-            start: event.start.format()
-          },
-          success: function(data, textStatus) {
-            if (!data.isOk) {
-              revertFunc();
-            }
-          },
-          error: function() {
-            revertFunc();
-          }
-        });
+    updateEventWithJSONData: function(event, data) {
+      // TODO: найти корректный способ перевода JSON в Event object
+      data.start = jQuery.fullCalendar.moment.utc(data.start);
+      data.end = jQuery.fullCalendar.moment.utc(data.end);
 
-      },
+      for (var prop in data) {
+        if (!data.hasOwnProperty(prop)) {
+          continue;
+        }
+        event[prop] = data[prop];
+      }
 
-      // resize
-      eventResize: function(event, revertFunc) {
-        jQuery.ajax({
-          url: SCRIPT_URL,
-          type: 'POST',
-          dataType: "json",
-          data: {
-            _func: 'resizeEvent',
-            id: event.id,
-            end: event.end.format()
-          },
-          success: function(data, textStatus) {
-            if (!data.isOk) {
-              revertFunc();
-            }
-          },
-          error: function() {
-            revertFunc();
-          }
-        });
-      },
+      if (!data.color) {
+        delete event.color;
+      }
+      if (!data.textColor) {
+        delete event.textColor;
+      }
+    },
 
-      // edit
-      eventClick: function(event, element) {
-        openCard({
-          source_name: 'Task',
-          rec_id: event.id,
-          ondestroy: function() {
-            jQuery.ajax({
-              url: SCRIPT_URL,
-              type: 'POST',
-              dataType: "json",
-              data: {
-                _func: 'getEventById',
-                id: event.id
-              },
-              success: function(data, textStatus) {
-                if (data.id) {
-                  updateEventWithJSONData(event, data);
-                  calendar.fullCalendar('updateEvent', event);
-                }
+    initCalendar: function() {
+      var self1 = this;
+      this.calendar = jQuery('#' + this.containerId).fullCalendar({
+        lang: this.getCalendarLanguage(),
+        height: this.calculateCalendarHeight(),
+        header: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'month,agendaWeek,agendaDay'
+        },
+        defaultView: 'agendaWeek',
+        slotEventOverlap: false,
+        defaultDate: moment().format('YYYY-MM-DD'),
+
+        editable: true,
+        selectable: true,
+        selectHelper: true,
+
+        events: this.getEventSource(),
+
+        loading: function(bool) {
+          jQuery('#' + self1.containerId).css('opacity', bool ? 0.5 : 1);
+        },
+
+        // move
+        eventDrop: function(event, revertFunc) {
+          Transport.request({
+            section: 'Calendar',
+            'class': 'u_Calendar',
+            method: 'moveEvent',
+            parameters: {
+              id: event.id,
+              start: event.start.format()
+            },
+            onSuccess: function(transport) {
+              var data = transport.responseText.evalJSON().data;
+              if (!data.isOk) {
+                revertFunc();
               }
-            });
-          }
-        });
-      },
-
-      // add new
-      select: function(start, end) {
-        var title = 'new event';
-        var eventData = {
-          title: title,
-          start: start,
-          end: end
-        };
-
-        jQuery.ajax({
-          url: SCRIPT_URL,
-          type: 'POST',
-          dataType: "json",
-          data: {
-            _func: 'generateEventId'
-          },
-          success: function(data, textStatus) {
-            if (!data.id) {
-              calendar.fullCalendar('unselect');
-              return;
+            },
+            onFail: function() {
+              revertFunc();
             }
+          });
+        },
 
-            openCard({
-              source_name: 'Task',
-              card_params: Object.toJSON({
-                mode: 'addFromCalendar',
-                id: data.id,
-                start: start,
-                end: end
-              }),
-              ondestroy: function() {
-                jQuery.ajax({
-                  url: SCRIPT_URL,
-                  type: 'POST',
-                  dataType: "json",
-                  data: {
-                    _func: 'getEventById',
-                    id: data.id
-                  },
-                  success: function(data, textStatus) {
-                    if ((data || {}).id) {
-                      calendar.fullCalendar('renderEvent', data, false);
-                    }
+        // resize
+        eventResize: function(event, revertFunc) {
+          Transport.request({
+            section: 'Calendar',
+            'class': 'u_Calendar',
+            method: 'resizeEvent',
+            parameters: {
+              id: event.id,
+              end: event.end.format()
+            },
+            onSuccess: function(transport) {
+              var data = transport.responseText.evalJSON().data;
+              if (!data.isOk) {
+                revertFunc();
+              }
+            },
+            onFail: function() {
+              revertFunc();
+            }
+          });
+        },
+
+        // edit
+        eventClick: function(event, element) {
+          openCard({
+            source_name: 'Task',
+            rec_id: event.id,
+            ondestroy: function() {
+              Transport.request({
+                section: 'Calendar',
+                'class': 'u_Calendar',
+                method: 'getEventById',
+                parameters: {
+                  id: event.id
+                },
+                onSuccess: function(transport) {
+                  var data = transport.responseText.evalJSON().data;
+                  if (data.id) {
+                    self1.updateEventWithJSONData(event, data);
+                    self1.calendar.fullCalendar('updateEvent', event);
                   }
-                });
+                }
+              });
+            }
+          });
+        },
 
+        // add new
+        select: function(start, end) {
+          Transport.request({
+            section: 'Calendar',
+            'class': 'u_Calendar',
+            method: 'generateEventId',
+            onSuccess: function(transport) {
+              var data = transport.responseText.evalJSON().data;
+              if (!data.id) {
+                self1.calendar.fullCalendar('unselect');
+                return;
               }
-            });
-          }
-        });
-      },
 
-    });
-  };
+              openCard({
+                source_name: 'Task',
+                card_params: Object.toJSON({
+                  mode: 'addFromCalendar',
+                  id: data.id,
+                  start: start,
+                  end: end
+                }),
+                ondestroy: function() {
 
-  // TODO: use stadart core function
-  var calculateCalendarHeight = function() {
-    //return jQuery('#filters_area').height();
+                  Transport.request({
+                    section: 'Calendar',
+                    'class': 'u_Calendar',
+                    method: 'getEventById',
+                    parameters: {
+                      id: data.id
+                    },
+                    onSuccess: function(transport) {
+                      var data = transport.responseText.evalJSON().data;
+                      if ((data || {}).id) {
+                        self1.calendar.fullCalendar('renderEvent', data, false);
+                      }
+                    }
+                  });
 
-    var height = jQuery('body').height();
-    height -= jQuery('#menu_panel').outerHeight(true);
-    height -= jQuery('.header').outerHeight(true);
-    if (jQuery('.h_div').length > 0) {
-      height -= jQuery('.h_div').outerHeight(true);
+                }
+              });
+            }
+          });
+        }
+
+      });
+    },
+
+    // TODO: use stadart core function
+    calculateCalendarHeight: function() {
+      //return jQuery('#filters_area').height();
+
+      var height = jQuery('body').height();
+      height -= jQuery('#menu_panel').outerHeight(true);
+      height -= jQuery('.header').outerHeight(true);
+      if (jQuery('.h_div').length > 0) {
+        height -= jQuery('.h_div').outerHeight(true);
+      }
+      height -= jQuery('#dock').outerHeight(true);
+      // TODO: IE
+      if (!jQuery.support.boxModel) {
+        height -= 4;
+      }
+
+      return height;
+    },
+
+    initResizeEvent: function() {
+      var self = this;
+      // TODO: $ Prototypejs заменить на jQuery
+      Event.observe(window, "resize", function() {
+        self.calendar.fullCalendar('option', 'height', 
+            self.calculateCalendarHeight());
+      });
+
+/*
+      var self = this;
+      jQuery(window).on('resize', function() {
+        self.calendar.fullCalendar('option', 'height', 
+            self.calculateCalendarHeight());
+      });
+*/
     }
-    height -= jQuery('#dock').outerHeight(true);
-    // TODO: IE
-    if (!jQuery.support.boxModel) {
-      height -= 4;
-    }
 
-    return height;
-  };
+  }
 
-  var initResizeEvent = function() {
-    // TODO: using jQuery method corrupts calendar's events resizing
-    //jQuery(window).resize(function() {
-    Event.observe(window, "resize", function() {
-      calendar.fullCalendar('option', 'height', calculateCalendarHeight());
-    });
-  };
-
-};
+});

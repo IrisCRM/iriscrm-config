@@ -7,60 +7,8 @@ class c_Project extends Config
     public function __construct($Loader)
     {
         parent::__construct($Loader, array(
-            'config/common/Lib/lib.php', 
-            'config/sections/Project/s_project.php'));
+            'config/common/Lib/lib.php'));
     }
-
-    public function onChangeAccountID($params)
-    {
-        $result = GetLinkedValuesDetailed('iris_Account', $params['value'], array(
-            array('Field' => 'PrimaryContactID',
-                'GetField' => 'Name',
-                'GetTable' => 'iris_Contact')
-        ));
-        if (!$result['FieldValues'][0]['Value']) {
-            return null;
-        }
-        $result['FieldValues'][0]['Name'] = 'ContactID';
-        return $result;
-    }
-
-    public function onChangeContactID($params)
-    {
-        return GetLinkedValues('Contact', $params['value'], 
-                array('Account'), $this->connection);
-    }
-
-    public function onChangeObjectID($params)
-    {
-        return GetLinkedValues('Object', $params['value'], 
-                array('Account', 'Contact'), $this->connection);
-    }
-
-    public function onChangeProjectStageID($params) 
-    {
-        $s_Project = new s_Project(Loader::getLoader());
-        return $s_Project->getProbability($params['value']);
-    }
-
-    public function onChangeProjectStateID($params) 
-    {
-        // Изменение состояния ведет к изменению стадии (если завершено)
-        $StateCode = GetFieldValueByID('ProjectState', $params['value'], 
-                'Code', $this->connection);
-
-        if ($StateCode == 'Finished') {
-            list ($Probability, $StageID) = GetFieldValuesByFieldValue(
-                    'ProjectStage', 'Code', 'Finished', 
-                    array('Probability', 'ID'), $this->connection);
-            $result = FieldValueFormat('Probability', $Probability, null, $result);
-            $result = FieldValueFormat('ProjectStageID', $StageID, null, $result);
-            $date = GetCurrentDBDate($this->connection);
-            $result = FieldValueFormat('FinishDate', $date, null, $result);
-        }            
-        return $result;
-    }
-
 
     public function getEnabledFields($params)
     {

@@ -11,21 +11,26 @@ irisControllers.classes.c_Task = IrisCardController.extend({
     'field:edited #PaymentID, #FactInvoiceID, #DocumentID': 'onChangeLookup',
     'field:edited #AccountID': 'onChangeAccountID',
     'field:edited #TaskStateID': 'onChangeTaskStateID',
-    'field:edited #TaskResultID': 'onChangeTaskResultID',
+    'field:edited #TaskResultID': 'onChangeEvent',
     'field:edited #TaskTargetID': 'onChangeTaskTargetID',
-    'field:edited #NextTaskTargetID': 'onChangeNextTaskTargetID',
+    'field:edited #NextTaskTargetID': 'onChangeEvent',
     'field:edit #StartDate': 'onChangeStartDate',
     'field:edit #RemindDate': 'onChangeRemindDate',
     'field:edit #IsRemind': 'onChangeIsRemind'
   },
 
   onChangeLookup: function(event) {
-    c_Common_LinkedField_OnChange($(this.el).down('form'), event.target.id);
+    this.onChangeEvent(event, {
+      disableEvents: true,
+      rewriteValues: false,
+      letClearValues: false
+    });
   },
 
   onChangeAccountID: function () {
     // Поле Контакт зависит от поля Компания
     this.bindFields('AccountID', 'ContactID');
+    this.setTaskName();
   },
 
   onChangeTaskStateID: function() {
@@ -33,11 +38,6 @@ irisControllers.classes.c_Task = IrisCardController.extend({
         .find('[value=' + this.fieldValue('TaskStateID') + ']').attr('code');
     this.showIncubator(code == 'Finished' || code == 'Canceled'
         || this.fieldValue('NextTaskTargetID') != 'null');
-  },
-
-  onChangeTaskResultID: function(event) {
-    c_Common_LinkedField_OnChange($(this.el).down('form'), event.target.id, 
-      null, true);
   },
 
   onChangeTaskTargetID: function() {
@@ -55,23 +55,19 @@ irisControllers.classes.c_Task = IrisCardController.extend({
         option.html(option.data('original-caption'));
       }
     });
-  },
-
-  onChangeNextTaskTargetID: function(event) {
-    c_Common_LinkedField_OnChange($(this.el).down('form'), event.target.id, 
-      true, true);
+    this.setTaskName();
   },
 
   onChangeStartDate: function() {
     //Коррекция поля "Завершение" = "Начало" + 2 часа
-    var p_form = $(this.el).down('form');
-    var l_date = new Date(Date.parseFormattedString(p_form.StartDate.value));
+    var l_date = new Date(Date.parseFormattedString(this.fieldValue('StartDate')));
     if (l_date != 'Invalid Date') {
       var l_date_end = new Date(l_date);
       l_date_end.setMinutes(l_date.getMinutes() + 120);
-      p_form.FinishDate.value = l_date_end.toFormattedString(true);
+      this.fieldValue('FinishDate') = l_date_end.toFormattedString(true);
 
       //Скорректируем время напоминания
+      var p_form = $(this.el).down('form');
       c_Common_IsRemind_OnChange(p_form, Array('StartDate'), 15);
     }
   },
@@ -85,16 +81,23 @@ irisControllers.classes.c_Task = IrisCardController.extend({
     c_Common_RemindDate_OnChange($(this.el).down('form'));
   },
 
+  setTaskName: function() {
+    var name = this.fieldDisplayValue('Name');
+    var account = this.fieldDisplayValue('AccountID');
+    var target = this.fieldDisplayValue('TaskTargetID');
+    if (!name && account && target) {
+      this.fieldValue('Name', account + ': ' + target);
+    }
+  },
+
   onOpen: function () {
     // Поле Контакт зависит от поля Компания
     this.bindFields('AccountID', 'ContactID');
     this.bindFields('TaskTypeID', 'TaskResultID');
   
-    var p_form = $(this.el).down('form');    
-
-    var cardParams = jQuery.parseJSON(p_form._params.value || '{}');
+    var cardParams = jQuery.parseJSON(this.parameter('params') || '{}');
     if (cardParams.mode == 'addFromCalendar') {
-      this.addFromCalendar(p_form, cardParams);
+      this.addFromCalendar(cardParams);
     }
 
     this.fieldProperty('CreateID', 'readonly', true);
@@ -122,6 +125,7 @@ irisControllers.classes.c_Task = IrisCardController.extend({
     var self = this;
 
     this.customGrid({
+      method: 'renderSelectRecordDialog',
       parameters: {
         taskid: this.parameter('id'),
         projectid: this.fieldValue('ProjectID'),
@@ -134,14 +138,14 @@ irisControllers.classes.c_Task = IrisCardController.extend({
     });
   },
 
-  addFromCalendar: function(form, params) {
+  addFromCalendar: function(params) {
     var formatDateStr = function(date) {
       return moment.utc(date).format('DD.MM.YYYY HH:mm');
     };
 
-    form._id.value = params.id;
-    form.StartDate.value = formatDateStr(params.start);
-    form.FinishDate.value = formatDateStr(params.end);
+    this.parameter('id', params.id);
+    this.fieldValue('StartDate', formatDateStr(params.start));
+    this.fieldValue('FinishDate', formatDateStr(params.end));
   }
 
 });

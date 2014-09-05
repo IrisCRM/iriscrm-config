@@ -8,7 +8,7 @@ irisControllers.classes.c_Project = IrisCardController.extend({
     'lookup:changed #AccountID': 'onChangeAccountID',
     'lookup:changed #ContactID': 'onChangeContactID',
     'lookup:changed #ObjectID': 'onChangeObjectID',
-    'change #ProjectStageID': 'onChangeProjectStageID',
+    'change #ProjectStageID': 'onChangeEvent',
     'change #ProjectStateID': 'onChangeProjectStateID',
     'keyup #Income, #Expense': 'onChangeAmounts',
     'keyup #PlanIncome, #PlanExpense': 'onChangePlanAmounts',
@@ -20,61 +20,72 @@ irisControllers.classes.c_Project = IrisCardController.extend({
    * Названия проекта - обновление
    */
   updateName: function() {
-    var l_tire = (this.getField('AccountID').val() == '') || (this.getField('Number').val() == '') ? '' : ' - ';
-    this.getField('Name').val(this.getField('Number').val() + l_tire + this.getField('AccountID').val());
+    var l_tire = (this.fieldDisplayValue('AccountID') == '') 
+        || (this.fieldValue('Number') == '') ? '' : ' - ';
+    this.fieldValue('Name', this.fieldValue('Number') + l_tire + 
+        this.fieldDisplayValue('AccountID'));
   },
 
-  onChangeAccountID: function () {
-    var l_form = $(this.el.id).down('form');
-    this.updateName(l_form); 
+  onChangeAccountID: function(event) {
+    this.updateName(); 
     
     // При выборе компании заполним контакт из основного контакта компани
     // И установим фильтр на контакты - отображать только контакты компании
-    var account_id = c_Common_GetElementValue(l_form.AccountID);
+    var account_id = this.fieldValue('AccountID');
     if (account_id == '') {
-      l_form.ContactID.removeAttribute('filter_where');
+      this.getField('ContactID').removeAttr('filter_where');
     }
     else {
-      l_form.ContactID.setAttribute('filter_where', 
+      this.getField('ContactID').attr('filter_where', 
           "T0.accountid = '" + account_id + "'");
-      c_Common_LinkedField_OnChange(l_form, 'AccountID');
+      this.onChangeEvent(event, {
+        disableEvents: true,
+        rewriteValues: false,
+        letClearValues: false
+      });
     }
   },
 
-  onChangeContactID: function() {
-    var l_form = $(this.el.id).down('form');
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), 'ContactID', 
-      null, false, function() { 
-        this.updateName(l_form); 
-      });
+  onChangeContactID: function(event) {
+    var self = this;
+    this.onChangeEvent(event, {
+      disableEvents: true,
+      rewriteValues: false,
+      letClearValues: false,
+      onApply: function() {
+        self.updateName(); 
+      }
+    });
   },
 
-  onChangeObjectID: function() {
-    var l_form = $(this.el.id).down('form');
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), 'ObjectID', 
-      null, false, function() { 
-        this.updateName(l_form); 
-      });
+  onChangeObjectID: function(event) {
+    var self = this;
+    this.onChangeEvent(event, {
+      disableEvents: true,
+      rewriteValues: false,
+      letClearValues: false,
+      onApply: function() {
+        self.updateName(); 
+      }
+    });
   },
 
-  onChangeProjectStageID: function() {
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), 'ProjectStageID', 
-      null, true);
+  onChangeProjectStateID: function(event) {
+    this.onChangeEvent(event, {disableEvents: true});
   },
 
-  onChangeProjectStateID: function() {
-    c_Common_LinkedField_OnChange($(this.el.id).down('form'), 'ProjectStateID', 
-      null, true);
-  },
-
+  /**
+   * Расчитать прибыль = Доход - Расходы
+   */
   onChangeAmounts: function() {
-    // Расчитать прибыль = Доход - Расходы
-
     // Если полей нет на карточке, то ничего не рассчитываем и выйдем
     try {
-      var l_income = parseFloat(this.getField('Income').val());
-      var l_expense = parseFloat(this.getField('Expense').val());
-    } catch (e) {return};
+      var l_income = parseFloat(this.fieldValue('Income'));
+      var l_expense = parseFloat(this.fieldValue('Expense'));
+    }
+    catch (e) {
+      return;
+    };
     
     if (isNaN(l_income)) {
       l_income = 0;
@@ -90,15 +101,18 @@ irisControllers.classes.c_Project = IrisCardController.extend({
       l_profit = 0;
     } 
     
-    this.getField('Profit').val(l_profit.toFixed(2));
+    this.fieldValue('Profit', l_profit.toFixed(2));
   },
 
   onChangePlanAmounts: function() {
     // Расчитать прпланируемую прибыль = план Доход - план Расходы
     try {
-      var l_income = parseFloat(this.getField('PlanIncome').val());
-      var l_expense = parseFloat(this.getField('PlanExpense').val());
-    } catch (e) {return};
+      var l_income = parseFloat(this.fieldValue('PlanIncome'));
+      var l_expense = parseFloat(this.fieldValue('PlanExpense'));
+    }
+    catch (e) {
+      return;
+    };
     
     if (isNaN(l_income)) {
       l_income = 0;
@@ -113,7 +127,7 @@ irisControllers.classes.c_Project = IrisCardController.extend({
     if (isNaN(l_profit)) {
       l_profit = 0;
     } 
-    this.getField('PlanProfit').val(l_profit.toFixed(2));
+    this.fieldValue('PlanProfit', l_profit.toFixed(2));
   },
 
   onChangeIsRemind: function() {
@@ -172,12 +186,10 @@ irisControllers.classes.c_Project = IrisCardController.extend({
       if ('Client' != g_session_values['userrolecode']) {
         // Раздизаблим поля с суммами, которые можно менять 
         // (которые не расчитаны автоматически)
-        Transport.request({
-          section: 'Project', 
-          'class': 'c_Project', 
+        this.request({
           method: 'getEnabledFields', 
           parameters: {
-            id: l_form._id.value
+            id: this.parameter('id')
           },
           onSuccess: function (transport) {
             try {
@@ -262,7 +274,7 @@ irisControllers.classes.c_Project = IrisCardController.extend({
       onSuccess: function(transport) {
         var result = transport.responseText.evalJSON();
         if ((result.data.works == null) || (result.data.project.planstartdate == null) || (result.data.project.days == null)) {
-          wnd_alert('Чтобы построить диагрмму, убедитесь, что у заказа указаны планируемое начало и завершение и есть хотя бы одна работа у которой указаны планируемые сроки');
+          wnd_alert('Чтобы построить диаграмму, убедитесь, что у заказа указаны планируемое начало и завершение и есть хотя бы одна работа у которой указаны планируемые сроки');
           Windows.close(gantt_wnd_id);
         }
 

@@ -39,10 +39,10 @@ irisControllers.classes.c_Payment = IrisCardController.extend({
     try {
       var code_str = p_form.PaymentTypeID.options[p_form.PaymentTypeID.selectedIndex].getAttribute('code');
       if ('In' == code_str) {
-        p_form.isCash.up().up().previous().down().innerHTML = T.t('С кошелька');
+        this.fieldLabel('isCash', T.t('С кошелька'));
       }
       else {
-        p_form.isCash.up().up().previous().down().innerHTML = T.t('На кошелек');
+        this.fieldLabel('isCash', T.t('На кошелек'));
       }
     } catch (e) {};
   },

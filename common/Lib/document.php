@@ -53,6 +53,8 @@ class DocumentConfig extends Config
         // Обновим сумму в родительской записи
         UpdateRecord($parent, $result['FieldValues'], $parent_id, 
                 $this->connection);
+
+        return $result;
     }
 
 

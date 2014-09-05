@@ -17,20 +17,18 @@ class s_Interview extends Config
             return null;
         };
 
-        $con = GetConnection($p_con);
-
         $result = null;
 
         //Значения справочников
         $result = GetDictionaryValues(array(
                     array ('Dict' => 'InterviewState', 'Code' => 'plan')
-                ), $con, $result);
+                ), $this->connection, $result);
 
         //Ответственный
         $UserName = GetUserName();
-        $result = GetDefaultOwner($UserName, $con, $result);
+        $result = GetDefaultOwner($UserName, $this->connection, $result);
       
-        list ($ID, $Name) = GetShortUserInfo($UserName, $con);
+        list ($ID, $Name) = GetShortUserInfo($UserName, $this->connection);
         $result = FieldValueFormat('OperatorID', $ID, $Name, $result);
 
         return $result;

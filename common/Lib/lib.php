@@ -72,6 +72,7 @@ function GetConnection($p_con = null) {
 	
 
 //Получить значения связанных полей по id базового поля
+//deprecated: Заменять на this->getLinkedValues()
 function GetLinkedValues($p_Source, $p_RecordID, $p_Dest, $p_con=null, $p_result=null, $p_rewrite=false)
 {
 	$con = GetConnection($p_con);
@@ -500,6 +501,12 @@ function FieldValueFormat($p_Name, $p_Value, $p_Caption=null, $p_result=null, $d
 
 //Получить id, имя пользователя
 function GetShortUserInfo($p_Login, $p_con = null) {
+	$Session = IrisSession::getInstance();
+	if ($p_Login == $Session->userLogin()) {
+		$User = IrisUser::getInstance();
+		return array($User->property('id'), $User->property('name'));
+	}
+
 	$con = GetConnection($p_con);
 		
 	$select_sql = "select ID, Name from iris_Contact where Login=:p_login";
@@ -543,18 +550,6 @@ function GetCurrentDBDateTime($p_con=null) {
 	$DB = DB::getInstance();
 	$Local = Local::getInstance();
 	return $Local->dbDateTimeToLocal($DB->datetime());
-/*
-	$con = GetConnection($p_con);
-	
-	//Время завершения
-	$select_sql = "select "._db_datetime_to_string(_db_current_datetime());
-	$statement = $con->prepare($select_sql);
-	$statement->execute();
-	$statement->bindColumn(1, $l_date);
-	$res = $statement->fetch();
-	
-	return $l_date;
-*/
 }
 
 
@@ -563,16 +558,6 @@ function GetCurrentDBDate($p_con=null) {
 	$DB = DB::getInstance();
 	$Local = Local::getInstance();
 	return $Local->dbDateToLocal($DB->datetime());
-/*
-	$con = GetConnection($p_con);
-	//Время завершения
-	$select_sql = "select "._db_date_to_string(_db_current_datetime());
-	$statement = $con->prepare($select_sql);
-	$statement->execute();
-	$statement->bindColumn(1, $l_date);
-	$res = $statement->fetch();
-	return $l_date;
-	*/
 }
 
 //Сгенерировать новый номер
@@ -681,6 +666,11 @@ function UpdateRecord($p_Table, $p_Fields, $p_ID, $p_con=null, $unconvert=false)
 function InsertRecord($p_Table, $p_Fields, $p_con=null, $unconvert=false) {
 	$con = GetConnection($p_con);
 	$v = null;
+
+	$p_Table = GetTableName($p_Table);
+	if (substr($p_Table, 0, 5) != 'iris_') {
+		$p_Table = 'iris_' . $p_Table;
+	}
   
   //Добавляем поля - дата создания, изменения, автор, изменил в том случае, если их ещё нет в $p_Fields
   $createid = null;
@@ -724,7 +714,7 @@ function InsertRecord($p_Table, $p_Fields, $p_con=null, $unconvert=false) {
 
   
   //Создаём запрос на вставку
-	$insert_sql = "insert into iris_".$p_Table." (";
+	$insert_sql = "insert into " . $p_Table . " (";
 	$count = 0;
 	for ($i=0; $i<count($p_Fields); $i++) {
 		

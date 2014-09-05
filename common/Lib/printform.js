@@ -43,19 +43,27 @@ function printform_createButton(p_grid_id, p_button_caption) {
 }
 
 function printform_show(p_grid_id, p_lookup_elem) {
-    var rec_id = getGridSelectedID(p_grid_id);
-	printform_showbyid(rec_id, p_lookup_elem);
+  var rec_id = getGridSelectedID(p_grid_id);
+  printform_showbyid(rec_id, p_lookup_elem);
 }
 
 function printform_showbyid(rec_id, p_lookup_elem) {
-	if (p_lookup_elem.getAttribute('lookup_value') == '') {
-		return;
-	}
+  if (p_lookup_elem.getAttribute('lookup_value') == '') {
+    return;
+  }
 
-    if (rec_id != '') {
-        window.open(g_path+'/config/sections/Printform/printform.php?_func=GeneratePrintForm&rec_id='+rec_id+'&pf_id='+p_lookup_elem.getAttribute('lookup_value'));
-    }
-	SetLookupValue(p_lookup_elem, '');
+  if (rec_id != '') {
+    window.open(g_path + '/core/engine/printform.php?_func=render&record_id=' + 
+        rec_id + '&id=' + p_lookup_elem.getAttribute('lookup_value'));
+  }
+  SetLookupValue(p_lookup_elem, '');
+}
+
+function printform_showbycode(rec_id, code) {
+  if (rec_id != '' && code != undefined) {
+    window.open(g_path + '/core/engine/printform.php?_func=render&record_id=' + 
+        rec_id + '&code=' + code);
+  }
 }
 
 function printform_createCardHeaderButton(p_wnd_id, p_position, p_caption) {
