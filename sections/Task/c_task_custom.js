@@ -12,6 +12,14 @@ irisControllers.classes.c_Task_custom = irisControllers.classes.c_Task.extend({
     });
   },
 
+  onSelectContactID_custom: function(event) {
+    var tr = jQuery(event.target).parents('tr');
+    var contact_id = tr.attr('rec_id');
+    if (contact_id) {
+      this.fieldValue('ContactID', contact_id);
+    }
+  },
+
   onOpen: function () {
     // Родительский обработчик
     irisControllers.classes.c_Task_custom.__super__.onOpen.call(this);
@@ -20,6 +28,7 @@ irisControllers.classes.c_Task_custom = irisControllers.classes.c_Task.extend({
     this.events['field:edited #ContactID'] = 'onChangeContactID_custom';
     this.events['field:edited #clientname, #Phone, #phone2, #clientemail'] = 
         'updateClientListGrid';
+    this.events['dblclick .clientlist tr'] = 'onSelectContactID_custom';
     this.delegateEvents(this.events);
   },
 
@@ -41,7 +50,6 @@ irisControllers.classes.c_Task_custom = irisControllers.classes.c_Task.extend({
         if (!list.length) {
           self.getField('clients').parents('.form_row').addClass('clientlist');
           list = self.$el.find('.clientlist');
-          console.log(res.GridId);
           jQuery('#' + res.GridId).addClass('no-resize');
         }
         list.html('<td colspan="4">' + res.Card + '</td>');

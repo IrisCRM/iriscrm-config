@@ -21,6 +21,7 @@ class s_Task_custom extends s_Task
         $value = $this->fieldValue($result, 'name');
         $this->removeField($result, 'name');
         $this->mergeFields($result, $this->formatField('clientname', $value));
+        $this->mergeFields($result, $this->formatField('ContactID', $id, $value));
 
         $value = $this->fieldValue($result, 'Phone1');
         $this->removeField($result, 'Phone1');
