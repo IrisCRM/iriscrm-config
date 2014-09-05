@@ -18,7 +18,35 @@ irisControllers.classes.c_Task_custom = irisControllers.classes.c_Task.extend({
     delete this.events['field:edited #ContactID, #ObjectID, #ProjectID'];
     this.events['field:edited #ObjectID, #ProjectID'] = 'onChangeLookup';
     this.events['field:edited #ContactID'] = 'onChangeContactID_custom';
+    this.events['field:edited #clientname, #Phone, #phone2, #clientemail'] = 
+        'updateClientListGrid';
     this.delegateEvents(this.events);
+  },
+
+  updateClientListGrid: function(event) {
+    var self = this;
+
+    this.customGrid({
+      method: 'getGridWithContactList',
+      destination: 'none',
+      hideFooter: true,
+      parameters: {
+        name: this.fieldValue('clientname'),
+        phone1: this.fieldValue('Phone'),
+        phone2: this.fieldValue('phone2'),
+        email: this.fieldValue('clientemail')
+      },
+      onGet: function(res) {
+        var list = self.$el.find('.clientlist');
+        if (!list.length) {
+          self.getField('clients').parents('.form_row').addClass('clientlist');
+          list = self.$el.find('.clientlist');
+          console.log(res.GridId);
+          jQuery('#' + res.GridId).addClass('no-resize');
+        }
+        list.html('<td colspan="4">' + res.Card + '</td>');
+      }
+    });
   }
 
 });

@@ -49,10 +49,10 @@
          </COLUMNS>
       </GRID_WND>
       <EDITCARD name="c_Task" caption="Дело" width="780" height="520" 
-         layout="2, 1, 2, 2, 1,  1, 2, 1,    1, 2, 2, 2, 2, 2, 2, 2,    2, 2, 2, 2, 2,  1, 2,  1, 1,  1, 1, 2" 
+         layout="2, 1, 2, 2, 1,  1, 2, 1,  1,      1, 2, 2, 2, 2, 2, 2, 2,    2, 2, 2, 2, 2,  1, 2,  1, 1,  1, 1, 2" 
          show_card_top_panel="yes">
          <TABS>
-            <TAB caption="Основная информация" rows="8"/>
+            <TAB caption="Основная информация" rows="9"/>
             <TAB caption="Связи" rows="8"/>
             <TAB caption="Дополнительно" rows="12"/>
          </TABS>
@@ -70,6 +70,8 @@
             <FIELD elem_type="select" caption="Результат" db_field="TaskResultID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_table="iris_TaskResult" row_type_parent_display_column="Name" db_field_ext="TaskTypeID" order_by="orderpos"/>
             <FIELD elem_type="spacer"/>
             <FIELD elem_type="textarea" textarea_rows="3" caption="Результат подробно" db_field="Result" mandatory="no" datatype="string" row_type="common"/>
+
+            <FIELD elem_type="spacer" code="clients"/>
 
             <FIELD elem_type="splitter" caption="Связи"/>
             <FIELD elem_type="lookup" caption="Заказ" db_field="ProjectID" mandatory="no" datatype="id" row_type="fk_column" row_type_parent_source_type="grid" row_type_parent_source_name="Project" row_type_parent_display_column="Name"/>
