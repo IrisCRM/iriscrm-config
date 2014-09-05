@@ -6,8 +6,9 @@ require_once dirname(__FILE__) . Loader::DS . 'c_task.php';
 
 class c_Task_custom extends c_Task
 {
-    protected function _useFilters(&$params, &$filter, &$where, $names)
+    protected function _useFilters(&$params, &$filter, $names)
     {
+    	$where = '';
         foreach ($names as $name) {
             if (!empty($params[$name])) {
                 $filter[':' . $name] = $params[$name];
@@ -15,7 +16,7 @@ class c_Task_custom extends c_Task
                         . 't0.' . $name . " like '%' || :$name || '%'";
             }
         }
-        $where = $where ? 'where ' . $where : '';
+        return $where ? 'where ' . $where : '';
     }
 
     public function getGridWithContactList($params)
@@ -59,11 +60,10 @@ class c_Task_custom extends c_Task
 
         $where = '';
         $filter = array();
-        $this->_useFilters($params, $filter, $where, 
+        $where = $this->_useFilters($params, $filter, 
         		array('name', 'phone1', 'phone2', 'email'));
         $sql = str_replace('#where#', $where, $sql);
         $values = $this->_DB->exec($sql, $filter);
-
         $parameters = array(
             'grid_id' => 'custom_grid_'. md5(time() . rand(0, 10000)),
         );
