@@ -2,20 +2,22 @@
  * Скрипт раздела Календарь
  */
 
-irisControllers.classes.u_Calendar = IrisCardController.extend({
+irisControllers.classes.u_CalendarBusy = IrisCardController.extend({
 
   onOpen: function() {
     var CALENDAR_ID = 'calendar';
     var self = this;
     g_Prepare_Custom_Section('<div id="' + CALENDAR_ID + '"></div>');
 
+
     this.customFilters({
       section: 'Calendar',
       'class': 'u_Calendar',
-      method: 'getFiltersHTML',
+      method: 'getBusyFiltersHTML',
       containerId: 'filters_area',
       onDraw: function(filters) {
         self.Calendar.setFilters(filters);
+        self.Calendar.controller = self;
         self.Calendar.init(CALENDAR_ID);
       },
       onChange: function(filters) {
@@ -26,15 +28,39 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
   },
 
   Calendar: {
+    controller: null,
+    users: null,
     SCRIPT_URL: 'config/sections/Calendar/q_calendar.php',
     containerId: null,
     calendar: null,
     filters: [], // [Номер, значение][] выбранных фильтров
 
     init: function(p_containerId) {
-      this.containerId = p_containerId;
-      this.initCalendar();
-      this.initResizeEvent();
+      var self = this;
+      Transport.request({
+        section: 'Calendar',
+        'class': 'u_Calendar',
+        method: 'getUsers',
+        parameters: {
+          filters: self.filters,
+        },
+        onSuccess: function(transport) {
+          var data = transport.responseText.evalJSON().data;
+          if (!data || data.length == 0) {
+            self.controller.notify(T.t('Список сотрудников пуст'));
+          }
+
+          self.users = data;
+
+          self.containerId = p_containerId;
+          self.initCalendar();
+          self.initResizeEvent();
+
+        },
+        onFail: function() {
+          self.notify(T.t('Не удалось получить список сотрудников'));
+        }
+      });
     },
 
     setFilters: function(data) {
@@ -43,12 +69,16 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
 
     refresh: function() {
       jQuery('#' + this.containerId)
-          .fullCalendar('removeEventSource', this.SCRIPT_URL);
+          .fullCalendarBusy('removeEventSource', this.SCRIPT_URL);
       jQuery('#' + this.containerId)
-          .fullCalendar('removeEvents');
+          .fullCalendarBusy('removeEvents');
       jQuery('#' + this.containerId)
-          .fullCalendar('addEventSource', this.getEventSource());
+          .fullCalendarBusy('addEventSource', this.getEventSource());
       // calendar.fullCalendar('refetchEvents');
+    },
+
+    destroy: function() {
+      jQuery('#' + this.containerId).fullCalendarBusy('destroy');
     },
 
     getEventSource: function() {
@@ -73,8 +103,8 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
 
     updateEventWithJSONData: function(event, data) {
       // TODO: найти корректный способ перевода JSON в Event object
-      data.start = jQuery.fullCalendar.moment.utc(data.start);
-      data.end = jQuery.fullCalendar.moment.utc(data.end);
+      data.start = moment.utc(data.start);
+      data.end = moment.utc(data.end);
 
       for (var prop in data) {
         if (!data.hasOwnProperty(prop)) {
@@ -93,15 +123,16 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
 
     initCalendar: function() {
       var self1 = this;
-      this.calendar = jQuery('#' + this.containerId).fullCalendar({
+      this.calendar = jQuery('#' + this.containerId).fullCalendarBusy({
+        users: self1.users,
         lang: this.getCalendarLanguage(),
         height: this.calculateCalendarHeight(),
         header: {
           left: 'prev,next today',
           center: 'title',
-          right: 'month,agendaWeek,agendaDay'
+          right: 'month,irisWeek'
         },
-        defaultView: 'agendaWeek',
+        defaultView: 'irisWeek',
         slotEventOverlap: false,
         defaultDate: moment().format('YYYY-MM-DD'),
 
@@ -123,7 +154,9 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
             method: 'moveEvent',
             parameters: {
               id: event.id,
-              start: event.start.format()
+              //start: moment.utc(event.start).add(8, 'hours').format(),
+              start: event.start.format(),
+              userid: event.user
             },
             onSuccess: function(transport) {
               var data = transport.responseText.evalJSON().data;
@@ -145,7 +178,8 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
             method: 'resizeEvent',
             parameters: {
               id: event.id,
-              end: event.end.format()
+              end: moment.utc(event.end).format()
+              //end: moment.utc(event.end).add(-1, 'second').format()
             },
             onSuccess: function(transport) {
               var data = transport.responseText.evalJSON().data;
@@ -176,7 +210,7 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
                   var data = transport.responseText.evalJSON().data;
                   if (data.id) {
                     self1.updateEventWithJSONData(event, data);
-                    self1.calendar.fullCalendar('updateEvent', event);
+                    self1.calendar.fullCalendarBusy('updateEvent', event);
                   }
                 }
               });
@@ -185,7 +219,7 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
         },
 
         // add new
-        select: function(start, end) {
+        select: function(start, end, ev) {
           Transport.request({
             section: 'Calendar',
             'class': 'u_Calendar',
@@ -193,7 +227,7 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
             onSuccess: function(transport) {
               var data = transport.responseText.evalJSON().data;
               if (!data.id) {
-                self1.calendar.fullCalendar('unselect');
+                self1.calendar.fullCalendarBusy('unselect');
                 return;
               }
 
@@ -203,7 +237,11 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
                   mode: 'addFromCalendar',
                   id: data.id,
                   start: moment.utc(start).format('DD.MM.YYYY HH:mm'),
-                  end: moment.utc(end).format('DD.MM.YYYY HH:mm')
+                  end: moment.utc(end).format('DD.MM.YYYY HH:mm'),
+                  //start: moment.utc(start).add(8, 'hours').format('DD.MM.YYYY HH:mm'),
+                  //end: moment.utc(end).add(-1, 'second').format('DD.MM.YYYY HH:mm'),
+                  user: ev.user,
+                  username: ev.username
                 }),
                 ondestroy: function() {
 
@@ -217,7 +255,7 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
                     onSuccess: function(transport) {
                       var data = transport.responseText.evalJSON().data;
                       if ((data || {}).id) {
-                        self1.calendar.fullCalendar('renderEvent', data, false);
+                        self1.calendar.fullCalendarBusy('renderEvent', data, false);
                       }
                     }
                   });
@@ -229,6 +267,9 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
         }
 
       });
+
+
+
     },
 
     // TODO: use stadart core function
@@ -254,7 +295,7 @@ irisControllers.classes.u_Calendar = IrisCardController.extend({
       var self = this;
       // TODO: $ Prototypejs заменить на jQuery
       Event.observe(window, "resize", function() {
-        self.calendar.fullCalendar('option', 'height', 
+        self.calendar.fullCalendarBusy('option', 'height', 
             self.calculateCalendarHeight());
       });
 

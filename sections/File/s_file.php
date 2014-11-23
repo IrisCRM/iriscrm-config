@@ -113,4 +113,26 @@ class s_File extends Config
 
     }
 
+    public function onFileUpload($params)
+    {
+        // Сохраняем файл на диске
+        $res = SaveFileToPath();
+        $params2 = $params;
+        $params2['mode'] = 'insert';
+        $params2['with_master_field'] = true;
+        if ($res) {
+            // Добавляем файл в базу
+            foreach ($res as &$file) {
+                $data = $this->onPrepare($params2);
+                $this->mergeFields($data, $this->formatField(
+                        'file_file', $file['sysname']));
+                $this->mergeFields($data, $this->formatField(
+                        'file_filename', $file['name']));
+                $record = $this->saveRecord($data);
+            }
+        }
+        $res['file']['id'] = $record[0]['record_id'];
+        return $res;
+    }
+
 }

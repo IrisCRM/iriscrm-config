@@ -14,7 +14,9 @@ class s_Printform extends Config
 
     public function render($params)
     {
-        Loader::getLoader()->loadOnce('core/engine/printform.php');
+        if (!function_exists('GetReplacementPattern')) {
+            Loader::getLoader()->loadOnce('core/engine/printform.php');
+        }
 
         if (empty($params['record_id'])) {
             return false;

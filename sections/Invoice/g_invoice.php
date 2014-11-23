@@ -27,8 +27,8 @@ class g_Invoice extends Config
         $invoice_info = GetFormatedFieldValuesByFieldValue('Invoice', 'ID', $p_id, array(
             'AccountID', 'ContactID', 'CurrencyID', 'ProjectID', 'PactID'), $con);
         
-        $Loader = Loader::getLoader();
-        $FactInvoice = new s_FactInvoice($Loader);
+        $className = $this->_Loader->getChildClassName('s_FactInvoice');
+        $FactInvoice = new $className($this->_Loader);
         $invoice_values = $FactInvoice->onPrepare(array('mode' => 'insert'), $invoice_info);
         //$invoice_values = FactInvoice_GetDefaultValues($invoice_info);
         $factinvoice_id = create_guid();
@@ -129,8 +129,8 @@ class g_Invoice extends Config
         //Переименуем Amount -> PlanAmount
         SetArrayValueByParameter($invoice_info['FieldValues'], 'Name', 'Amount', 'Name', 'PlanAmount');
 
-        $Loader = Loader::getLoader();
-        $Payment = new s_Payment($Loader);
+        $className = $this->_Loader->getChildClassName('s_Payment');
+        $Payment = new $className($this->_Loader);
         $invoice_values = $Payment->onPrepare(array('mode' => 'insert'), $invoice_info);
         $invoice_id = create_guid();
         $invoice_values = FieldValueFormat('ID', $invoice_id, null, $invoice_values);
@@ -176,8 +176,8 @@ class g_Invoice extends Config
         $act_info = GetFormatedFieldValuesByFieldValue('Invoice', 'ID', $p_invoice_id, array(
             'AccountID', 'ContactID', 'Account_PropertyID', 'CurrencyID', 'ProjectID', 'PactID', 'Amount'), $con);
 
-        $Loader = Loader::getLoader();
-        $Document = new s_Document($Loader);
+        $className = $this->_Loader->getChildClassName('s_Document');
+        $Document = new $className($this->_Loader);
         $act_values = $Document->onPrepare(array('mode' => 'insert'), $act_info);
         //$act_values = Document_GetDefaultValues($act_info);
         $act_id = create_guid();

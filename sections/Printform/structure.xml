@@ -60,6 +60,8 @@
 			</ELEMENTS>
 		</EDITCARD>
 		<DETAILS>
+			<DETAIL caption="История изменений" name="d_Account_Log" detail_fk_column="" detail_bound_clause="(T0.recordid=:parent_id)" external="yes" detail_file="Sections/Changelog/detail.xml">
+			</DETAIL>
 		</DETAILS>
 	</TAB>
 </MENU_TAB>

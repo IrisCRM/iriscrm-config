@@ -15,16 +15,18 @@ class u_Calendar extends Config
     public function moveEvent($params) {
         $id = $params['id'];
         $start = $params['start'];
+        $userid = !empty($params['userid']) ? $params['userid'] : null;
 
         $permissions = $this->_User->getAccessToRecord('{task}', $id);
         if ($permissions['w'] == 0) {
             return array("isOk" => false);
         }
 
+        $user_sql = $userid ? ', ownerid = :userid ' : '';
         $sql  = "update " . $this->_DB->tableName('{task}') . " "
                 . "set _field_ = _field_ + " 
                     . "(to_timestamp(:newstartdate, 'YYYY-MM-DDThh24:MI:SS') " 
-                    . "- startdate) "
+                    . "- startdate) " . $user_sql
                 . "where id = :id "
                 . "and _field_ is not null";
 
@@ -32,10 +34,14 @@ class u_Calendar extends Config
         foreach ($fileds as $field) {
             $tmpsql = str_replace('_field_', $field, $sql);
             $cmd = $this->connection->prepare($tmpsql);
-            $cmd->execute(array(
+            $parameters = array(
                 ":id" => $id,
-                ":newstartdate" => $start
-            ));
+                ":newstartdate" => $start,
+            );
+            if ($userid) {
+                $parameters[':userid'] = $userid;
+            }
+            $cmd->execute($parameters);
             $code = $cmd->errorInfo();
 
             if ($code[0] != "00000") {
@@ -48,7 +54,7 @@ class u_Calendar extends Config
 
 
     public function resizeEvent($params) {
-        $permissions = $this->_User->getAccessToRecord('{task}', $id);
+        $permissions = $this->_User->getAccessToRecord('{task}', $params['id']);
         if ($permissions['w'] == 0) {
             return array("isOk" => false);
         }
@@ -81,7 +87,8 @@ class u_Calendar extends Config
                 . "to_char(finishdate, 'YYYY-MM-DDThh24:MI:SS+00:00') as end, "
                 . "TT.code as type, TI.code as importance, "
                 . "TS.code as state, TR.code as result, "
-                . "case when T0.ownerid = :user_id then 1 else 0 end as my_task "
+                . "case when T0.ownerid = :user_id then 1 else 0 end as my_task, "
+                . "T0.ownerid as userid "
                 . "from " . $this->_DB->tableName("{task}") ." T0 "
                 . "left join " . $this->_DB->tableName('{tasktype}') . " TT "
                     . "on T0.tasktypeid = TT.id "
@@ -102,8 +109,8 @@ class u_Calendar extends Config
         }
         if ($id == null) {
             $sql .= "where " . $where . " "
-                    . "and startdate::date >= to_date(:from, 'YYYY-MM-DD') "
-                    . "and startdate::date <= to_date(:to, 'YYYY-MM-DD') ";
+                    . "and startdate::date <= to_date(:to, 'YYYY-MM-DD') "
+                    . "and finishdate::date >= to_date(:from, 'YYYY-MM-DD') ";
             $params[':from'] = $from;
             $params[':to'] = $to;
         }
@@ -136,7 +143,8 @@ class u_Calendar extends Config
             "id" => $task["id"],
             "title" => $task["title"],
             "start" => $task["start"],
-            "end" => $task["end"]
+            "end" => $task["end"],
+            "user" => $task["userid"]
         );
 
         if ($task["importance"] == "High") {
@@ -191,9 +199,30 @@ class u_Calendar extends Config
         return $events;
     }
 
+    public function getUsers() {
+        $sql = "select c1.id as id, c1.name as name " 
+                . "from " . $this->_DB->tableName('{Contact}') . " c1 "
+                . "left join " . $this->_DB->tableName('{ContactType}') . " ct1 "
+                    . "on ct1.id = c1.contacttypeid "
+                . "where ct1.code = 'Your' "
+                . "order by c1.name";
+        $users = $tasks = $this->_DB->exec($sql);
+
+        return $users;
+    }
+
     public function getFiltersHTML()
     {
         $data = $this->getCustomFilters('CalendarFilter');
+        $result = array(
+            'Filters' => $this->renderView('filter', $data),
+        );
+        return $result;
+    }
+
+    public function getBusyFiltersHTML()
+    {
+        $data = $this->getCustomFilters('CalendarBusyFilter');
         $result = array(
             'Filters' => $this->renderView('filter', $data),
         );

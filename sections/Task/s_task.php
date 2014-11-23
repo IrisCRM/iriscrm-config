@@ -306,6 +306,14 @@ class s_Task extends Config
             }
             else
             if ($card_params['mode'] == 'addFromCalendar') {
+                $this->mergeFields($result, $this->formatField('StartDate', 
+                        $card_params['start']));
+                $this->mergeFields($result, $this->formatField('FinishDate', 
+                        $card_params['end']));
+                if (!empty($card_params['user'])) {
+                    $this->mergeFields($result, $this->formatField('OwnerID', 
+                            $card_params['user'], $card_params['username']));
+                }
             }
         }
         else {

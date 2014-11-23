@@ -26,8 +26,8 @@ class g_Pact extends Config
 		$pact_info = GetFormatedFieldValuesByFieldValue('Pact', 'ID', $p_id, array(
 			'AccountID', 'ContactID', 'CurrencyID', 'ProjectID', 'OfferID', 'Account_PropertyID', 'Your_PropertyID'), $con);
 
-        $Loader = Loader::getLoader();
-        $Invoice = new s_Invoice($Loader);
+        $className = $this->_Loader->getChildClassName('s_Invoice');
+        $Invoice = new $className($this->_Loader);
         $invoice_values = $Invoice->onPrepare(array('mode' => 'insert'), $pact_info);
 		//$invoice_values = Invoice_GetDefaultValues($pact_info);
 		$invoice_id = create_guid();
@@ -142,8 +142,8 @@ class g_Pact extends Config
 		$act_info = GetFormatedFieldValuesByFieldValue('Pact', 'ID', $p_pact_id, array(
 			'AccountID', 'ContactID', 'Account_PropertyID', 'CurrencyID', 'ProjectID', 'Amount'), $con);
 
-        $Loader = Loader::getLoader();
-        $Document = new s_Document($Loader);
+        $className = $this->_Loader->getChildClassName('s_Document');
+        $Document = new $className($this->_Loader);
         $act_values = $Document->onPrepare(array('mode' => 'insert'), $act_info);
 	    //$act_values = Document_GetDefaultValues($act_info);
 		$act_id = create_guid();

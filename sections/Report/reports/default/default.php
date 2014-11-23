@@ -26,6 +26,7 @@ class ReportRender
     protected $_params;
     protected $_show_info;
     protected $_report_description;
+    protected $_js;
 
     public $data;
     public $errorinfo;
@@ -100,6 +101,15 @@ class ReportRender
     }
 
     /**
+     * Установить обработчики js
+     *
+     * @param string $js Javascript код с обработчиками
+     */
+    public function setJavascript($js) {
+        $this->_js = $js;
+    }
+
+    /**
      * Генерация отчёта
      */
     public function render()
@@ -109,6 +119,7 @@ class ReportRender
 
         // Извлечение данных для отчёта
         $this->buildData();
+        $this->data['javascript_bottom'] = $this->_js;
 
         //TODO: Генерация полей с фильтрами
         list ($filtters_all, $filters) = Report_GetFilters(

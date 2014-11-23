@@ -628,7 +628,7 @@ function BuildReportSQL($p_reportid, $p_filters) {
   $last_sorded_index = -1; //Сортировку обычную начнём после этого поля
   for ($i=0; $i<$rowcount; $i++) { //идём до конца, чтобы вычислить $last_sorded_index
     for ($j=$i+1; $j<$rowcount; $j++) {
-      if (($res[$i]['groupnumber'] < $res[$j]['groupnumber'] 
+      if (($res[$j]['groupnumber'] != '' && $res[$i]['groupnumber'] > $res[$j]['groupnumber'] 
       && $res[$i]['grouptype'] == 2 && $res[$j]['grouptype'] == 2)
       || (('' == $res[$i]['groupnumber'] || $res[$i]['grouptype'] != 2) 
       && ('' != $res[$j]['groupnumber'] && $res[$j]['grouptype'] == 2)))
@@ -636,6 +636,9 @@ function BuildReportSQL($p_reportid, $p_filters) {
         $tmp = $res[$i]; 
         $res[$i] = $res[$j];
         $res[$j] = $tmp;
+      }
+      if ($res[$i]['grouptype'] == 2 && $res[$i]['ordernumber'] == '') {
+        $res[$i]['ordernumber'] = -1;
       }
     }
     $last_sorded_index = $res[$i]['groupnumber'] && $res[$i]['grouptype'] == 2 ? $i : $last_sorded_index;
@@ -646,8 +649,8 @@ function BuildReportSQL($p_reportid, $p_filters) {
 	//Сортировка (секция ORDER BY)
 	for ($i=$last_sorded_index+1; $i<$rowcount-1; $i++) {
 		for ($j=$i+1; $j<$rowcount; $j++) {
-			if (($res[$i]['ordernumber'] < $res[$j]['ordernumber'])
-			|| (('' == $res[$i]['ordernumber']) && ('' != $res[$j]['ordernumber']))) {
+			if (($res[$j]['ordernumber'] != '' && $res[$i]['ordernumber'] > $res[$j]['ordernumber'])
+			|| ($res[$j]['ordernumber'] != '' && $res[$i]['ordernumber'] == '')) {
 				$tmp = $res[$i]; 
 				$res[$i] = $res[$j];
 				$res[$j] = $tmp;
@@ -656,7 +659,7 @@ function BuildReportSQL($p_reportid, $p_filters) {
 	}
 	$i = 0;
 	while (($i<$rowcount) && ($res[$i]['ordernumber'] != '')) {
-		$order = '' == $order ? $order : ', '.$order;
+		$order .= $order ? ', ' : '';
 
 		//Направление сортировки
 		$dir = '';
@@ -668,21 +671,20 @@ function BuildReportSQL($p_reportid, $p_filters) {
 		}
 
     if (('date' == $res[$i]['rcolumntypecode'])) {
-      $order = $res[$i]['columnalias'].$res[$i]['columnalias'].'datedate'.' '.$dir.$order;
+      $order .= $res[$i]['columnalias'].$res[$i]['columnalias'].'datedate'.' '.$dir;
     }
     else
     if (('datetime' == $res[$i]['rcolumntypecode'])) {
-      $order = $res[$i]['columnalias'].$res[$i]['columnalias'].'datetimedatetime'.' '.$dir.$order;
+      $order .= $res[$i]['columnalias'].$res[$i]['columnalias'].'datetimedatetime'.' '.$dir;
     }
     else {
-  		$order = $res[$i]['columnalias'].' '.$dir.$order;
+  		$order .= $res[$i]['columnalias'].' '.$dir;
     }
 		$i++;
 	}
-	$order = '' != $order ? 'order by '.$order : $order;  
+	$order = '' != $order ? 'order by ' . $order : $order;  
 	$order .= ' ';
 	
-
 	//Группировка (секция GROUP BY)
 	for ($i=0; $i<$rowcount-1; $i++) {
 		for ($j=$i+1; $j<$rowcount; $j++) {
@@ -1076,27 +1078,80 @@ function BuildReportTable($p_data, $p_show_info, $p_sql, $p_params, $p_errorinfo
 //  echo '</pre>';
   
 	//Рисуем заголовки
-	$result .= '<tr>';
+	$result_header = '<tr>';
+  $table_field_count = 0;
 	foreach ($p_show_info as $meta) {
-		if (1 == $meta['ShowInReport']) {
-			$result .= '<th class="grid"'.($meta['Width'] ? ' width="'.$meta['Width'].'"' : '').'>'.htmlspecialchars($meta['Caption']).'</th>';
+		if (1 == $meta['ShowInReport'] && $meta['GroupType'] != 2) {
+			$result_header .= '<th class="grid"'.($meta['Width'] ? ' width="'.$meta['Width'].'"' : '').'>'.htmlspecialchars($meta['Caption']).'</th>';
+      $table_field_count++;
 		}
 	}
-	$result .= '</tr>';
+	$result_header .= '</tr>';
 	
 	//Рисуем строки
-	$class = 'even';
+	$class = 'odd';
 	$total = array();
 	$havetotal = false;
+
+  // Подытог, используется для группировки в отчете без group by
+  $havegroups = false;
+  $prev = array();
+  $subtotal = array();
+  $subtotal_count = 0;
+
+  $rownum = 0;
 	foreach ($p_data as $row) {
     if ($class_column) {
       $class = $row[$class_column];
     }
-		$result .= '<tr class="grid '.$class.'" onclick="selectreportrow(this);">';
+		$result_row = '';
 		$i = 0;
+    $header_number = 2;
+
+    $colcount = 0;
+
+    $subtotal_count++;
+
 		foreach ($p_show_info as $meta) {
 			if (1 == $meta['ShowInReport']) {
+
+
+
+        // TODO: refactor subtotal
+        if ($rownum && $colcount == 0 && $prev[$meta['Alias']] != $row[$meta['Alias']]) {
+          if ($havegroups && $havetotal) {
+            $result .= '<tr class="total">';
+            foreach ($subtotal as $key => $value) {
+              $typeclass = $p_show_info[$key]['Type'];
+              if ('AVG' == $p_show_info[$key]['Total']) {
+                $value = $subtotal_count <= 0 ? '' : $value = $value / $subtotal_count;
+                $typeclass = 'float';
+              }
+              if (('float' == $typeclass) && ($value != '')) {
+                $value = number_format($value, 2, $dec_point, $thousands_sep);
+              }
+              if ($p_show_info[$key]['GroupType'] != 2) {
+                $result .= '<td class="total '.$typeclass.'">'.$value.'</td>';
+              }
+            }
+            $result .= '</tr>';
+          }
+        }
+
+
+
 				
+        if ($meta['GroupType'] == 2 && (!$rownum || $prev[$meta['Alias']] != $row[$meta['Alias']])) {
+          $result .= '<tr><td colspan="' . $table_field_count . '"><h' . $header_number . '>' 
+              . $row[$meta['Alias']] . '</h' . $header_number . '></td></tr>';
+          $header_number++;
+          $havegroups = true;
+          $class = 'odd';
+          $subtotal = array();
+          $subtotal_count = 0;
+        }
+        $prev[$meta['Alias']] = $row[$meta['Alias']];
+
 				//Приведем к нужному формату
 				$value = htmlspecialchars($row[$meta['Alias']]);
 				if (('float' == $meta['Type']) && ($value != '')) {
@@ -1108,7 +1163,9 @@ function BuildReportTable($p_data, $p_show_info, $p_sql, $p_params, $p_errorinfo
             ($meta['LinkedColumnAlias'] ? $row[$meta['LinkedColumnAlias']] : $value).
             "', '".$meta['LinkedParameterCaption']."', '".iris_str_replace('"', '', $value)."');\">$value</a>" 
           : $value;
-				$result .= '<td class="grid '.$meta['Type'].'">'.$showvalue.'</td>';
+				if ($meta['GroupType'] != 2) {
+          $result_row .= '<td class="grid '.$meta['Type'].'">'.$showvalue.'</td>';
+        }
 
 				//Если надо считать итог, то посчитаем его
         if (empty($total[$i])) {
@@ -1119,20 +1176,24 @@ function BuildReportTable($p_data, $p_show_info, $p_sql, $p_params, $p_errorinfo
 					case 'SUM': 
 					case 'AVG':
 						$total[$i] += $row[$meta['Alias']];
+            $subtotal[$i] += $row[$meta['Alias']];
 						$havetotal = true;
 						break;
 						
 					case 'COUNT':
 						$total[$i] += 1;
+            $subtotal[$i] += 1;
 						$havetotal = true;
 						break;
 						
 					case 'MAX':
 						if (0 == count($total[$i])) {
 							$total[$i] = $row[$meta['Alias']];
+              $subtotal[$i] = $row[$meta['Alias']];
 						}
 						else {
 							$total[$i] = $total[$i]>$row[$meta['Alias']] ? $total[$i] : $row[$meta['Alias']];
+              $subtotal[$i] = $subtotal[$i]>$row[$meta['Alias']] ? $subtotal[$i] : $row[$meta['Alias']];
 						}
 						$havetotal = true;
 						break;
@@ -1140,25 +1201,37 @@ function BuildReportTable($p_data, $p_show_info, $p_sql, $p_params, $p_errorinfo
 					case 'MIN':
 						if (0 == count($total[$i])) {
 							$total[$i] = $row[$meta['Alias']];
+              $subtotal[$i] = $row[$meta['Alias']];
 						}
 						else {
 							$total[$i] = $total[$i]<$row[$meta['Alias']] ? $total[$i] : $row[$meta['Alias']];
+              $subtotal[$i] = $subtotal[$i]<$row[$meta['Alias']] ? $subtotal[$i] : $row[$meta['Alias']];
 						}
 						$havetotal = true;
 						break;
 				}
         $total[$i] = htmlspecialchars($total[$i]);
+        $subtotal[$i] = htmlspecialchars($subtotal[$i]);
+        $colcount++;
 			}
 			$i++;
 		}
-		$result .= '</tr>';
+    if ($header_number > 2) {
+      $result .= $result_header;
+    }
+    $result_row = '<tr class="grid ' . $class . '" onclick="selectreportrow(this);">'
+        . $result_row . '</tr>';
+    $result .= $result_row;
     if ($class_column) {
       $class = $row[$class_column];
     }
     else {
       $class = 'even' == $class ? 'odd' : 'even';
     }
+    $rownum++;
 	}
+  $result = (!$havegroups ? $result_header : '') . $result;
+
 	// 28.11.2011: если в отчете ошибка, то выведем соответсвующее сообщение, а администратору sql отчета и текст ошибки
 	if (($p_errorinfo != false) and ($p_errorinfo[0] != '00000')) {
 		$admin_info = (IsUserInAdminGroup() == true) ? '<span class="errbtn" onclick="$(\'errorinfo\').toggle()">?</span><div id="errorinfo" style="display: none">'.$p_errorinfo[2].'<br>'.$p_sql.'<br>'.var_export($p_params, true).'</div>' : '';
@@ -1167,6 +1240,35 @@ function BuildReportTable($p_data, $p_show_info, $p_sql, $p_params, $p_errorinfo
 
 	//Если есть итог, то нарисуем его
 	if ($havetotal) {
+
+
+
+
+    // TODO: refactor subtotal
+    if ($havegroups && $havegroups) {
+      $result .= '<tr class="total">';
+      foreach ($subtotal as $key => $value) {
+        $typeclass = $p_show_info[$key]['Type'];
+        if ('AVG' == $p_show_info[$key]['Total']) {
+          $value = count($p_data)<=0 ? '' : $value = $value/count($p_data);
+          $typeclass = 'float';
+        }
+        if (('float' == $typeclass) && ($value != '')) {
+          $value = number_format($value, 2, $dec_point, $thousands_sep);
+        }
+        if ($p_show_info[$key]['GroupType'] != 2) {
+          $result .= '<td class="total '.$typeclass.'">'.$value.'</td>';
+        }
+      }
+      $result .= '</tr>';
+      $result .= '<tr><td colspan="' . $table_field_count . '"><h2>' 
+          . 'Итого' . '</h2></td></tr>';
+    }
+
+
+
+
+    // TODO: refactor total
 		$result .= '<tr class="total">';
 		foreach ($total as $key => $value) {
 			$typeclass = $p_show_info[$key]['Type'];
@@ -1177,7 +1279,9 @@ function BuildReportTable($p_data, $p_show_info, $p_sql, $p_params, $p_errorinfo
 			if (('float' == $typeclass) && ($value != '')) {
 				$value = number_format($value, 2, $dec_point, $thousands_sep);
 			}
-			$result .= '<td class="total '.$typeclass.'">'.$value.'</td>';
+      if ($p_show_info[$key]['GroupType'] != 2) {
+			  $result .= '<td class="total '.$typeclass.'">'.$value.'</td>';
+      }
 		}
 		$result .= '</tr>';
 		$result = '<table class="report"><tbody>'.$result;

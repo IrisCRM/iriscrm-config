@@ -126,8 +126,8 @@ class g_Project extends Config
             'AccountID', 'ContactID', 'CurrencyID'), $con);
         
         //Значения в карточке счета по умолчанию
-        $Loader = Loader::getLoader();
-        $Invoice = new s_Invoice($Loader);
+        $className = $this->_Loader->getChildClassName('s_Invoice');
+        $Invoice = new $className($this->_Loader);
         $invoice_values = $Invoice->onPrepare(array('mode' => 'insert'), $project_info);
         //$invoice_values = Invoice_GetDefaultValues($project_info);
         
@@ -293,9 +293,8 @@ class g_Project extends Config
         $project_info = GetFormatedFieldValuesByFieldValue('Project', 'ID', $p_id, array(
             'AccountID', 'ContactID', 'CurrencyID'), $con);
 
-
-        $Loader = Loader::getLoader();
-        $Offer = new s_Offer($Loader);
+        $className = $this->_Loader->getChildClassName('s_Offer');
+        $Offer = new $className($this->_Loader);
         $offer_values = $Offer->onPrepare(array('mode' => 'insert'), $project_info);
 //        $offer_values = Offer_GetDefaultValues($project_info);
         $offer_id = create_guid();
@@ -356,8 +355,8 @@ class g_Project extends Config
         $project_info = GetFormatedFieldValuesByFieldValue('Project', 'ID', $p_id, array(
             'AccountID', 'ContactID', 'CurrencyID'), $con);
 
-        $Loader = Loader::getLoader();
-        $Pact = new s_Pact($Loader);
+        $className = $this->_Loader->getChildClassName('s_Pact');
+        $Pact = new $className($this->_Loader);
         $pact_values = $Pact->onPrepare(array('mode' => 'insert'), $project_info);
 //        $pact_values = Pact_GetDefaultValues($project_info);
         $pact_id = create_guid();

@@ -59,17 +59,30 @@ irisControllers.classes.c_Task = IrisCardController.extend({
   },
 
   onChangeStartDate: function() {
+    var prevStartDate = this.$el.data('prevStartDate');
+    var finishDate = this.fieldValue('FinishDate');
+    var l_date_end;
     //Коррекция поля "Завершение" = "Начало" + 2 часа
     var l_date = new Date(Date.parseFormattedString(this.fieldValue('StartDate')));
     if (l_date != 'Invalid Date') {
-      var l_date_end = new Date(l_date);
-      l_date_end.setMinutes(l_date.getMinutes() + 120);
-      this.fieldValue('FinishDate') = l_date_end.toFormattedString(true);
+      if (!prevStartDate || !finishDate) {
+        l_date_end = new Date(l_date);
+        l_date_end.setMinutes(l_date.getMinutes() + 120);
+      }
+      else {
+        // Если указана и дата начала и дата завершения, 
+        // то не меняя длительности подправим дату завершения
+        l_date_end = new Date(Date.parseFormattedString(finishDate));
+        var prev = new Date(Date.parseFormattedString(prevStartDate));
+        l_date_end.setSeconds(l_date_end.getSeconds() + (l_date - prev) / 1000);
+      }
+      this.fieldValue('FinishDate', l_date_end.toFormattedString(true));
 
       //Скорректируем время напоминания
       var p_form = $(this.el).down('form');
       c_Common_IsRemind_OnChange(p_form, Array('StartDate'), 15);
     }
+    this.$el.data('prevStartDate', this.fieldValue('StartDate'));
   },
 
   onChangeIsRemind: function() {
@@ -109,6 +122,7 @@ irisControllers.classes.c_Task = IrisCardController.extend({
       this.fieldProperty('NextStartDate', 'readonly', true);
       this.fieldProperty('_select_next_target', 'readonly', true);
     }
+    this.$el.data('prevStartDate', this.fieldValue('StartDate'));
   },
 
   showIncubator: function(show) {
@@ -139,13 +153,13 @@ irisControllers.classes.c_Task = IrisCardController.extend({
   },
 
   addFromCalendar: function(params) {
-    var formatDateStr = function(date) {
-      return moment.utc(date).format('DD.MM.YYYY HH:mm');
-    };
+    //var formatDateStr = function(date) {
+      //return moment.utc(date).format('DD.MM.YYYY HH:mm');
+    //};
 
     this.parameter('id', params.id);
-    this.fieldValue('StartDate', formatDateStr(params.start));
-    this.fieldValue('FinishDate', formatDateStr(params.end));
+    //this.fieldValue('StartDate', formatDateStr(params.start));
+    //this.fieldValue('FinishDate', formatDateStr(params.end));
   }
 
 });
