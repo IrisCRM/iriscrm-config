@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<MENU_TAB>
+  <TAB section_type="common" caption="Пример"
+    table="(select *, y::varchar||(case when m &lt; 10 then '0' else '' end)||m::varchar as ym, y*100 + m as id from iris_month_intervals(:date1, :date2) as f(y int, m int)) test_tbl">
+    <EDITCARD name="c_Test" caption="Пример" width="400" height="200" layout="1, 1, 1">
+      <ELEMENTS>
+        <FIELD caption="Год" db_field="y" elem_type="text" datatype="int" row_type="common"/>
+        <FIELD caption="Месяц" db_field="m" elem_type="text" datatype="int" row_type="common"/>
+        <FIELD caption="ГодМесяц" db_field="ym" elem_type="text" datatype="int" row_type="common"/>
+      </ELEMENTS>
+    </EDITCARD>
+    <DETAILS>
+    </DETAILS>
+  </TAB>
+</MENU_TAB>
