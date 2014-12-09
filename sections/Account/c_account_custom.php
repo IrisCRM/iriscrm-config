@@ -17,7 +17,8 @@ class c_Account_custom extends Config
             //'detail' => 'TestDetail', // with section|dict
             //'parent_id' => $parent_id, // with detail
             'mode' => 'update',
-            'where' => $parameters['where'], // where condition
+            //'where' => $parameters['where'], // where condition
+            'id' => $parameters['id'],
             'parameters' => $parameters['parameters'], // parameters
         ));
         $result = &$data[0];

@@ -1,15 +1,31 @@
 <?xml version="1.0"?>
 <MENU_TAB>
   <TAB section_type="common" caption="Пример"
-    table="(select *, y::varchar||(case when m &lt; 10 then '0' else '' end)||m::varchar as ym, y*100 + m as id from iris_month_intervals(:date1, :date2) as f(y int, m int)) test_tbl">
-    <EDITCARD name="c_Test" caption="Пример" width="400" height="200" layout="1, 1, 1">
+    table="(select *, y::varchar||(case when m &lt; 10 then '0' else '' end)||m::varchar as ym, y*100 + m as id from iris_month_intervals(:date1, :date2) as f(y int, m int))">
+    <EDITCARD name="c_Test" caption="Пример" width="400" height="200" layout="1, 1, 1, 1">
       <ELEMENTS>
         <FIELD caption="Год" db_field="y" elem_type="text" datatype="int" row_type="common"/>
         <FIELD caption="Месяц" db_field="m" elem_type="text" datatype="int" row_type="common"/>
         <FIELD caption="ГодМесяц" db_field="ym" elem_type="text" datatype="int" row_type="common"/>
+        <FIELD caption="Дни" elem_type="detail" code="d_Test_Days" height="60"/>
       </ELEMENTS>
     </EDITCARD>
     <DETAILS>
+      <DETAIL caption="Дни" name="d_Test_Days" detail_fk_column="ym" detail_table="(select 20141101 id, 1 d, 201411 ym where 1 = :testparam union select 20141102, 2, 201411 where 1 = :testparam)">
+        <GRID lines_count="1" display_search="no" name="dg_Test_Days">
+          <COLUMNS>
+            <ITEM db_field="d" caption="День" width="100%" row_type="common" row_datatype="decimal"/>
+          </COLUMNS>
+        </GRID>
+        <EDITCARD name="dc_Test_Days" caption="День" width="600" height="220" 
+           layout="1, 1"
+           draw_extra_button="yes">
+          <ELEMENTS>
+            <FIELD elem_type="text" caption="ГодМесяц" db_field="ym" mandatory="no" datatype="decimal" row_type="common"/>
+            <FIELD elem_type="text" caption="День" db_field="d" mandatory="no" datatype="decimal" row_type="common"/>
+          </ELEMENTS>
+        </EDITCARD>
+      </DETAIL>
     </DETAILS>
   </TAB>
 </MENU_TAB>

@@ -27,14 +27,14 @@ irisControllers.classes.g_Account_custom = irisControllers.classes.g_Account.ext
     this.customCard({
       'class': 'c_Account',
       method: 'renderMonthCard',
+      properties: {
+        width: 700
+      },
       parameters: {
         date1: '20140101',
         date2: '20141201',
       },
-      where: {
-        y: 2014,
-        m: 11
-      },
+      id: 201411,
       onGet: function(param) {
         console.log(param);
       },
